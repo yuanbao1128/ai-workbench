@@ -1,0 +1,8 @@
+{
+  "crons": [
+    { "path": "/api/cron/check-reminders", "schedule": "* * * * *" },
+    { "path": "/api/cron/daily-report", "schedule": "0 18 * * 1-5" },
+    { "path": "/api/cron/weekly-report", "schedule": "0 18 * * 5" },
+    { "path": "/api/cron/morning-brief", "schedule": "0 9 * * 1-5" }
+  ]
+}

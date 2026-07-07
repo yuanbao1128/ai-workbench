@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 工作台 — 高保真原型</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: { 50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8a' },
+        danger: '#DC2626',
+        warn: '#D97706',
+        success: '#22C55E',
+        bg: '#F8FAFC',
+        card: '#FFFFFF',
+        text: '#111827',
+        muted: '#6B7280',
+        border: '#E2E8F0',
+      }
+    }
+  }
+}
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+  * { font-family: 'Inter', 'Noto Sans SC', -apple-system, sans-serif; }
+  body { background: #F1F5F9; }
+  .screen { display: none; }
+  .screen.active { display: flex; }
+  .nav-item { transition: all 0.15s; }
+  .nav-item:hover { background: #F1F5F9; }
+  .nav-item.active { background: #EFF6FF; color: #2563EB; border-right: 3px solid #2563EB; font-weight: 600; }
+  .card { background: #fff; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .card-hover:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #CBD5E1; }
+  .btn-primary { background: #2563EB; color: #fff; border-radius: 8px; padding: 8px 16px; font-weight: 500; font-size: 14px; transition: all 0.15s; }
+  .btn-primary:hover { background: #1D4ED8; }
+  .btn-ghost { color: #6B7280; border-radius: 8px; padding: 8px 16px; font-weight: 500; font-size: 14px; transition: all 0.15s; }
+  .btn-ghost:hover { background: #F1F5F9; color: #111827; }
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 12px; font-weight: 500; }
+  .badge-red { background: #FEF2F2; color: #DC2626; }
+  .badge-green { background: #F0FDF4; color: #16A34A; }
+  .badge-blue { background: #EFF6FF; color: #2563EB; }
+  .badge-amber { background: #FFFBEB; color: #D97706; }
+  .badge-gray { background: #F3F4F6; color: #6B7280; }
+  .dot-red { width: 8px; height: 8px; border-radius: 50%; background: #EF4444; display: inline-block; }
+  .dot-green { width: 8px; height: 8px; border-radius: 50%; background: #22C55E; display: inline-block; }
+  .priority-must { border-left: 3px solid #DC2626; }
+  .priority-focus { border-left: 3px solid #D97706; }
+  .priority-normal { border-left: 3px solid #E2E8F0; }
+  .chat-bubble-user { background: #EFF6FF; border-radius: 16px 16px 4px 16px; }
+  .chat-bubble-ai { background: #F8FAFC; border-radius: 16px 16px 16px 4px; }
+  .mobile-frame { width: 390px; height: 844px; border-radius: 36px; border: 3px solid #1F2937; background: #fff; overflow: hidden; position: relative; }
+  .mobile-frame .status-bar { height: 44px; background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; font-size: 12px; font-weight: 600; }
+  .mobile-frame .notch { width: 120px; height: 30px; background: #1F2937; border-radius: 0 0 18px 18px; position: absolute; top: 0; left: 50%; transform: translateX(-50%); }
+  .mobile-frame .bottom-nav { height: 64px; border-top: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: space-around; padding-bottom: 8px; }
+  .mobile-frame .bottom-nav .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; color: #9CA3AF; }
+  .mobile-frame .bottom-nav .nav-btn.active { color: #2563EB; }
+  .mobile-frame .bottom-nav .nav-btn svg { width: 24px; height: 24px; }
+  .fade-in { animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .calendar-cell { transition: all 0.15s; }
+  .calendar-cell:hover { background: #F1F5F9; cursor: pointer; }
+  .calendar-cell.selected { background: #EFF6FF; ring: 2px solid #2563EB; }
+  .tab { padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #6B7280; cursor: pointer; transition: all 0.15s; }
+  .tab:hover { background: #F1F5F9; }
+  .tab.active { background: #2563EB; color: #fff; }
+  .input-field { border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 12px; font-size: 14px; width: 100%; outline: none; transition: border-color 0.15s; }
+  .input-field:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; font-size: 12px; background: #F1F5F9; color: #475569; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; display: flex; align-items: center; justify-content: center; }
+  .modal-overlay.hidden { display: none; }
+  .modal { background: #fff; border-radius: 16px; padding: 24px; max-width: 640px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+  .modal-sm { max-width: 480px; }
+  .delegation-detail { display: none; }
+  .delegation-detail.open { display: block; }
+  .btn-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid #E2E8F0; background: #fff; cursor: pointer; transition: all 0.15s; font-size: 16px; }
+  .btn-icon:hover { background: #F1F5F9; border-color: #CBD5E1; }
+  .select-field { border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 12px; font-size: 14px; width: 100%; outline: none; background: #fff; cursor: pointer; }
+  .select-field:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; }
+  .status-badge.pending { background: #FFF7ED; color: #EA580C; border: 1px solid #FED7AA; }
+  .status-badge.replied { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
+  .status-badge.resolved { background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0; }
+  .legacy-item { background: #FFF7ED; border-left: 3px solid #EA580C; }
+  .legacy-item.overdue { background: #FEF2F2; border-left: 3px solid #DC2626; }
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+<!-- ============================================================ -->
+<!--  TOP BAR: Screen Switcher + Mode Toggle                       -->
+<!-- ============================================================ -->
+<div class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 px-4 py-2 flex items-center gap-2 overflow-x-auto shadow-sm">
+  <span class="text-sm font-bold text-gray-800 mr-2 whitespace-nowrap">📋 原型页面：</span>
+  <button onclick="switchScreen('dashboard')" class="tab active" id="tab-dashboard">仪表盘</button>
+  <button onclick="switchScreen('knowledge')" class="tab" id="tab-knowledge">知识库</button>
+  <button onclick="switchScreen('card-detail')" class="tab" id="tab-card-detail">卡片详情</button>
+  <button onclick="switchScreen('tasks')" class="tab" id="tab-tasks">日程表</button>
+  <button onclick="switchScreen('delegation')" class="tab" id="tab-delegation">委托跟进</button>
+  <button onclick="switchScreen('weekly')" class="tab" id="tab-weekly">周报</button>
+  <button onclick="switchScreen('chat')" class="tab" id="tab-chat">AI对话</button>
+  <span class="text-gray-300 mx-2">|</span>
+  <span class="text-xs text-gray-500 whitespace-nowrap">视图：</span>
+  <button onclick="setMode('pc')" class="tab active" id="mode-pc">PC</button>
+  <button onclick="setMode('mobile')" class="tab" id="mode-mobile">📱 手机</button>
+</div>
+
+<!-- ============================================================ -->
+<!--  MAIN CONTENT AREA                                            -->
+<!-- ============================================================ -->
+<div class="mt-14 w-full max-w-[1400px]">
+
+<!-- ============================================================ -->
+<!--  SCREEN: DASHBOARD (PC)                                       -->
+<!-- ============================================================ -->
+<div id="screen-dashboard" class="screen active fade-in">
+  <div class="flex gap-0 h-[calc(100vh-120px)]">
+    <!-- Sidebar -->
+    <div class="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0 rounded-l-xl">
+      <div class="p-5 border-b border-gray-100">
+        <div class="text-lg font-bold text-gray-900">🤖 AI 工作台</div>
+        <div class="text-xs text-gray-400 mt-1">郭红军 · 产品经理</div>
+      </div>
+      <nav class="flex-1 p-3 space-y-1">
+        <div class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm">
+          <span>📊</span> 仪表盘
+        </div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('knowledge')">
+          <span>📝</span> 知识库
+          <span class="ml-auto badge badge-red">5</span>
+        </div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('tasks')">
+          <span>📅</span> 日程表
+        </div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('delegation')">
+          <span>🔄</span> 委托跟进
+          <span class="ml-auto badge badge-amber">2</span>
+        </div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm">
+          <span>📋</span> 日报
+        </div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('weekly')">
+          <span>📊</span> 周报
+        </div>
+      </nav>
+      <div class="p-3 border-t border-gray-100">
+        <div class="flex items-center gap-3 px-3 py-2 text-xs text-gray-400">
+          <div class="w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold">郭</div>
+          郭红军
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-y-auto p-6 bg-bg rounded-r-xl">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">今日概览</h1>
+          <p class="text-sm text-gray-400 mt-0.5">2026年7月6日 · 周一</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="btn-icon" onclick="toggleModal('settings-modal')" title="系统设置">⚙️</button>
+          <div class="relative">
+            <button class="btn-ghost text-sm relative">🔔 <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">3</span></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overview Cards -->
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <!-- Must Do -->
+        <div class="card p-5">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-lg">🔴</span>
+            <h3 class="font-semibold text-gray-900">必须解决</h3>
+            <span class="badge badge-red">1项</span>
+          </div>
+          <div class="card p-4 priority-must card-hover cursor-pointer bg-gray-50">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="font-medium text-gray-900 text-sm">评审登录页方案</div>
+                <div class="text-xs text-gray-400 mt-1 flex items-center gap-1">⏰ 15:00</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="badge badge-blue text-[10px]">关联方案</span>
+                <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Focus -->
+        <div class="card p-5">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-lg">🟡</span>
+            <h3 class="font-semibold text-gray-900">重点关注</h3>
+            <span class="badge badge-amber">3项</span>
+          </div>
+          <div class="space-y-2">
+            <div class="card p-3 priority-focus card-hover cursor-pointer bg-gray-50">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="font-medium text-gray-900 text-sm">Q2数据报告</div>
+                  <div class="text-xs text-gray-400 mt-0.5">📅 截止 7/10</div>
+                </div>
+                <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+              </div>
+            </div>
+            <div class="card p-3 priority-focus card-hover cursor-pointer bg-gray-50">
+              <div class="flex items-center justify-between">
+                <div class="font-medium text-gray-900 text-sm">需求文档 v2</div>
+                <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+              </div>
+            </div>
+            <div class="card p-3 priority-focus card-hover cursor-pointer bg-gray-50">
+              <div class="flex items-center justify-between">
+                <div class="font-medium text-gray-900 text-sm">数据复盘会议</div>
+                <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Delegation Alerts -->
+        <div class="card p-5">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-lg">🔄</span>
+            <h3 class="font-semibold text-gray-900">待追问</h3>
+            <span class="badge badge-amber">2项</span>
+          </div>
+          <div class="space-y-2">
+            <div class="card p-3 card-hover cursor-pointer bg-gray-50">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="font-medium text-gray-900 text-sm">登录页报错 → 王工排查</div>
+                  <div class="text-xs text-gray-400 mt-0.5">来源：李老板</div>
+                </div>
+                <div class="text-right">
+                  <div class="text-xs text-orange-500 font-medium">追问 @ 17:00</div>
+                  <div class="text-[10px] text-gray-400">3小时后</div>
+                </div>
+              </div>
+            </div>
+            <div class="card p-3 card-hover cursor-pointer bg-gray-50">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="font-medium text-gray-900 text-sm">接口超时 → 李工排查</div>
+                  <div class="text-xs text-gray-400 mt-0.5">来源：运营反馈</div>
+                </div>
+                <div class="text-right">
+                  <div class="text-xs text-orange-500 font-medium">追问 @ 14:00</div>
+                  <div class="text-[10px] text-gray-400">2小时后</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Unknown Terms -->
+        <div class="card p-5">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-lg">📝</span>
+            <h3 class="font-semibold text-gray-900">待了解名词</h3>
+            <span class="badge badge-red">5个</span>
+            <span class="text-[10px] text-gray-400 ml-auto cursor-pointer hover:text-primary-500" onclick="switchScreen('knowledge')">查看全部 →</span>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="tag cursor-pointer hover:bg-red-50">K8s</span>
+            <span class="tag cursor-pointer hover:bg-red-50">GraphQL</span>
+            <span class="tag cursor-pointer hover:bg-red-50">WebSocket</span>
+            <span class="tag cursor-pointer hover:bg-red-50">gRPC</span>
+            <span class="tag cursor-pointer hover:bg-red-50">消息队列</span>
+          </div>
+          <div class="mt-4 p-3 bg-red-50 rounded-lg text-xs text-red-600 flex items-center gap-2">
+            <span>💡</span> 待了解名词已达5个，有空时集中查阅吧
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Chat Mini -->
+      <div class="card mt-4 p-4 bg-gradient-to-r from-gray-50 to-blue-50">
+        <div class="flex items-center gap-3">
+          <div class="text-xl">💬</div>
+          <div class="flex-1">
+            <div class="text-sm text-gray-600">🤖 早上好！今天你有 <b class="text-red-600">1项必须解决</b>、<b class="text-amber-600">3项重点关注</b>、<b class="text-amber-600">2个委托待追问</b>。需要我帮你做什么？</div>
+          </div>
+          <button class="btn-primary text-sm" onclick="switchScreen('chat')">打开对话</button>
+        </div>
+        <div class="mt-3 flex items-center gap-2">
+          <input type="text" class="input-field flex-1" placeholder="输入你想做的事情... 例如：记一下 K8s 不太懂">
+          <button class="btn-primary">🎤</button>
+          <button class="btn-primary">发送</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SCREEN: KNOWLEDGE BASE (PC)                                  -->
+<!-- ============================================================ -->
+<div id="screen-knowledge" class="screen fade-in">
+  <div class="flex gap-0 h-[calc(100vh-120px)]">
+    <div class="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0 rounded-l-xl">
+      <div class="p-5 border-b border-gray-100">
+        <div class="text-lg font-bold text-gray-900">🤖 AI 工作台</div>
+        <div class="text-xs text-gray-400 mt-1">郭红军 · 产品经理</div>
+      </div>
+      <nav class="flex-1 p-3 space-y-1">
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('dashboard')">
+          <span>📊</span> 仪表盘
+        </div>
+        <div class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm">
+          <span>📝</span> 知识库
+          <span class="ml-auto badge badge-red">5</span>
+        </div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('tasks')">
+          <span>📅</span> 日程表
+        </div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('delegation')">
+          <span>🔄</span> 委托跟进
+          <span class="ml-auto badge badge-amber">2</span>
+        </div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm">
+          <span>📋</span> 日报
+        </div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('weekly')">
+          <span>📊</span> 周报
+        </div>
+      </nav>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 bg-bg rounded-r-xl">
+      <div class="flex items-center justify-between mb-5">
+        <h1 class="text-2xl font-bold text-gray-900">知识库</h1>
+        <button class="btn-primary">+ 新增卡片</button>
+      </div>
+
+      <!-- Filters -->
+      <div class="flex items-center gap-3 mb-5 flex-wrap">
+        <input type="text" class="input-field w-64" placeholder="🔍 搜索知识卡片...">
+        <div class="flex gap-1">
+          <span class="tab active">全部</span>
+          <span class="tab">术语</span>
+          <span class="tab">方案</span>
+          <span class="tab">灵感</span>
+          <span class="tab">纪要</span>
+          <span class="tab">问题</span>
+        </div>
+        <div class="flex gap-1 ml-auto">
+          <span class="tab active">全部状态</span>
+          <span class="tab">🔴 待了解</span>
+          <span class="tab">🟢 已了解</span>
+        </div>
+      </div>
+
+      <!-- Card Grid -->
+      <div class="grid grid-cols-3 gap-4">
+        <!-- Card 1: Unknown Term -->
+        <div class="card p-4 card-hover cursor-pointer aspect-square flex flex-col" onclick="switchScreen('card-detail')">
+          <div class="flex items-center justify-between mb-2">
+            <span class="badge badge-gray text-[10px]">术语</span>
+            <span class="badge badge-red text-[10px] flex items-center gap-1"><span class="dot-red"></span>待了解</span>
+          </div>
+          <div class="flex-1 flex flex-col justify-center">
+            <div class="text-2xl font-bold text-gray-900 mb-1">K8s</div>
+            <div class="text-xs text-gray-400">Kubernetes</div>
+          </div>
+          <div class="text-[10px] text-gray-400 mt-3 pt-3 border-t border-gray-100">📅 2026-07-05</div>
+        </div>
+
+        <!-- Card 2: Known Term -->
+        <div class="card p-4 card-hover cursor-pointer aspect-square flex flex-col" onclick="switchScreen('card-detail')">
+          <div class="flex items-center justify-between mb-2">
+            <span class="badge badge-gray text-[10px]">术语</span>
+            <span class="badge badge-green text-[10px] flex items-center gap-1"><span class="dot-green"></span>已了解</span>
+          </div>
+          <div class="flex-1 flex flex-col justify-center">
+            <div class="text-xl font-bold text-gray-900 mb-1">矢量数据库</div>
+            <div class="text-xs text-gray-500 line-clamp-2">专门存储和检索高维向量的数据库，用于AI语义搜索...</div>
+          </div>
+          <div class="text-[10px] text-gray-400 mt-3 pt-3 border-t border-gray-100">📅 6/10 记录 · 6/20 更新</div>
+        </div>
+
+        <!-- Card 3: Unknown Term -->
+        <div class="card p-4 card-hover cursor-pointer aspect-square flex flex-col">
+          <div class="flex items-center justify-between mb-2">
+            <span class="badge badge-gray text-[10px]">术语</span>
+            <span class="badge badge-red text-[10px] flex items-center gap-1"><span class="dot-red"></span>待了解</span>
+          </div>
+          <div class="flex-1 flex flex-col justify-center">
+            <div class="text-2xl font-bold text-gray-900 mb-1">GraphQL</div>
+            <div class="text-xs text-gray-400">API 查询语言</div>
+          </div>
+          <div class="text-[10px] text-gray-400 mt-3 pt-3 border-t border-gray-100">📅 2026-07-01</div>
+        </div>
+
+        <!-- Card 4: Design -->
+        <div class="card p-4 card-hover cursor-pointer aspect-square flex flex-col">
+          <div class="flex items-center justify-between mb-2">
+            <span class="badge badge-blue text-[10px]">方案</span>
+          </div>
+          <div class="flex-1 flex flex-col justify-center">
+            <div class="text-lg font-bold text-gray-900 mb-1 leading-tight">登录页重构方案</div>
+            <div class="text-xs text-gray-500 line-clamp-2">支持手机号+验证码+微信OAuth三种登录方式</div>
+          </div>
+          <div class="text-[10px] text-gray-400 mt-3 pt-3 border-t border-gray-100">📅 7/3 记录 · 7/5 更新</div>
+        </div>
+
+        <!-- Card 5: Question -->
+        <div class="card p-4 card-hover cursor-pointer aspect-square flex flex-col">
+          <div class="flex items-center justify-between mb-2">
+            <span class="badge badge-amber text-[10px]">问题</span>
+          </div>
+          <div class="flex-1 flex flex-col justify-center">
+            <div class="text-lg font-bold text-gray-900 mb-1 leading-tight">订单超时取消为什么是30分钟？</div>
+            <div class="text-xs text-gray-500">需要搞清楚这个业务逻辑</div>
+          </div>
+          <div class="text-[10px] text-gray-400 mt-3 pt-3 border-t border-gray-100">📅 2026-07-04</div>
+        </div>
+
+        <!-- Card 6: Inspiration -->
+        <div class="card p-4 card-hover cursor-pointer aspect-square flex flex-col">
+          <div class="flex items-center justify-between mb-2">
+            <span class="badge badge-blue text-[10px]">灵感</span>
+          </div>
+          <div class="flex-1 flex flex-col justify-center">
+            <div class="text-lg font-bold text-gray-900 mb-1 leading-tight">数据看板加个预警功能</div>
+            <div class="text-xs text-gray-500">当指标超过阈值时自动变色提醒</div>
+          </div>
+          <div class="text-[10px] text-gray-400 mt-3 pt-3 border-t border-gray-100">📅 2026-07-02</div>
+        </div>
+
+        <!-- Card 7: Unknown Term -->
+        <div class="card p-4 card-hover cursor-pointer aspect-square flex flex-col">
+          <div class="flex items-center justify-between mb-2">
+            <span class="badge badge-gray text-[10px]">术语</span>
+            <span class="badge badge-red text-[10px] flex items-center gap-1"><span class="dot-red"></span>待了解</span>
+          </div>
+          <div class="flex-1 flex flex-col justify-center">
+            <div class="text-2xl font-bold text-gray-900 mb-1">WebSocket</div>
+            <div class="text-xs text-gray-400">全双工通信协议</div>
+          </div>
+          <div class="text-[10px] text-gray-400 mt-3 pt-3 border-t border-gray-100">📅 2026-07-05</div>
+        </div>
+
+        <!-- Card 8: Meeting -->
+        <div class="card p-4 card-hover cursor-pointer aspect-square flex flex-col">
+          <div class="flex items-center justify-between mb-2">
+            <span class="badge badge-gray text-[10px]">纪要</span>
+          </div>
+          <div class="flex-1 flex flex-col justify-center">
+            <div class="text-lg font-bold text-gray-900 mb-1 leading-tight">7/6 设计评审会纪要</div>
+            <div class="text-xs text-gray-500 line-clamp-2">确认登录页改版方向，下一步出高保真原型</div>
+          </div>
+          <div class="text-[10px] text-gray-400 mt-3 pt-3 border-t border-gray-100">📅 2026-07-06</div>
+        </div>
+
+        <!-- Card 9: Unknown Term -->
+        <div class="card p-4 card-hover cursor-pointer aspect-square flex flex-col">
+          <div class="flex items-center justify-between mb-2">
+            <span class="badge badge-gray text-[10px]">术语</span>
+            <span class="badge badge-red text-[10px] flex items-center gap-1"><span class="dot-red"></span>待了解</span>
+          </div>
+          <div class="flex-1 flex flex-col justify-center">
+            <div class="text-2xl font-bold text-gray-900 mb-1">gRPC</div>
+            <div class="text-xs text-gray-400">高性能RPC框架</div>
+          </div>
+          <div class="text-[10px] text-gray-400 mt-3 pt-3 border-t border-gray-100">📅 2026-07-02</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SCREEN: CARD DETAIL (PC)                                     -->
+<!-- ============================================================ -->
+<div id="screen-card-detail" class="screen fade-in">
+  <div class="flex gap-0 h-[calc(100vh-120px)]">
+    <div class="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0 rounded-l-xl">
+      <div class="p-5 border-b border-gray-100">
+        <div class="text-lg font-bold text-gray-900">🤖 AI 工作台</div>
+        <div class="text-xs text-gray-400 mt-1">郭红军 · 产品经理</div>
+      </div>
+      <nav class="flex-1 p-3 space-y-1">
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('dashboard')"><span>📊</span> 仪表盘</div>
+        <div class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm"><span>📝</span> 知识库</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('tasks')"><span>📅</span> 日程表</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('delegation')"><span>🔄</span> 委托跟进</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm"><span>📋</span> 日报</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('weekly')"><span>📊</span> 周报</div>
+      </nav>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 bg-bg rounded-r-xl">
+      <div class="mb-4">
+        <button class="text-sm text-gray-400 hover:text-primary-500" onclick="switchScreen('knowledge')">← 返回知识库</button>
+      </div>
+
+      <div class="card p-6 max-w-3xl">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">📝</span>
+            <div>
+              <h1 class="text-xl font-bold text-gray-900">矢量数据库</h1>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="badge badge-gray">术语</span>
+                <span class="badge badge-green flex items-center gap-1"><span class="dot-green"></span> 已了解</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn-ghost text-sm">✏️ 编辑</button>
+            <button class="btn-ghost text-sm text-red-500">🗑 删除</button>
+          </div>
+        </div>
+
+        <hr class="my-5 border-gray-100">
+
+        <div class="mb-5">
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">我的理解</h3>
+          <p class="text-gray-700 leading-relaxed">专门存储和检索高维向量的数据库系统。与传统数据库不同，它通过向量相似度而非精确匹配来查询数据，广泛应用于 AI 语义搜索、推荐系统、图像检索等场景。核心原理是将文本/图片等内容通过 Embedding 模型转化为高维向量，然后通过 ANN（近似最近邻）算法快速找到最相似的向量。</p>
+        </div>
+
+        <div class="mb-5">
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">关键概念</h3>
+          <div class="flex flex-wrap gap-2">
+            <span class="tag">Embedding</span>
+            <span class="tag">ANN</span>
+            <span class="tag">相似度检索</span>
+            <span class="tag">向量索引</span>
+          </div>
+        </div>
+
+        <div class="mb-5">
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">关联卡片</h3>
+          <div class="flex flex-wrap gap-2">
+            <span class="badge badge-blue cursor-pointer hover:underline">📝 RAG（检索增强生成）</span>
+            <span class="badge badge-blue cursor-pointer hover:underline">📝 大语言模型</span>
+            <span class="badge badge-blue cursor-pointer hover:underline">📐 智能搜索功能方案设计</span>
+          </div>
+        </div>
+
+        <div class="mb-5">
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">来源</h3>
+          <p class="text-sm text-gray-500">2026-06-10 技术评审会上听到</p>
+        </div>
+
+        <hr class="my-5 border-gray-100">
+
+        <div>
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">历史记录</h3>
+          <div class="space-y-2">
+            <div class="flex items-center gap-2 text-sm text-gray-500">
+              <span class="text-gray-300">📅</span> 2026-06-10 · 首次记录（标记为待了解）
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-500">
+              <span class="text-gray-300">📅</span> 2026-06-15 · 补充理解
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-500">
+              <span class="text-gray-300">📅</span> 2026-06-20 · 标记为已了解，新增关联卡片
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-5 border-gray-100">
+
+        <div class="flex gap-2">
+          <button class="btn-ghost text-sm">🔄 标记为待了解</button>
+          <button class="btn-ghost text-sm">🔗 添加关联</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SCREEN: TASKS & CALENDAR (PC)                                -->
+<!-- ============================================================ -->
+<div id="screen-tasks" class="screen fade-in">
+  <div class="flex gap-0 h-[calc(100vh-120px)]">
+    <div class="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0 rounded-l-xl">
+      <div class="p-5 border-b border-gray-100">
+        <div class="text-lg font-bold text-gray-900">🤖 AI 工作台</div>
+        <div class="text-xs text-gray-400 mt-1">郭红军 · 产品经理</div>
+      </div>
+      <nav class="flex-1 p-3 space-y-1">
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('dashboard')"><span>📊</span> 仪表盘</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('knowledge')"><span>📝</span> 知识库</div>
+        <div class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm"><span>📅</span> 日程表</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('delegation')"><span>🔄</span> 委托跟进</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm"><span>📋</span> 日报</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('weekly')"><span>📊</span> 周报</div>
+      </nav>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 bg-bg rounded-r-xl">
+      <div class="flex items-center justify-between mb-5">
+        <h1 class="text-2xl font-bold text-gray-900">日程表</h1>
+        <div class="flex gap-1 bg-gray-100 rounded-lg p-1">
+          <span class="tab active">📅 日程表</span>
+          <span class="tab">⚠️ 遗留问题</span>
+        </div>
+      </div>
+
+      <!-- Week Calendar -->
+      <div class="card p-5 mb-5">
+        <div class="flex items-center justify-between mb-4">
+          <button class="btn-ghost text-sm">◀ 上周</button>
+          <h3 class="font-semibold text-gray-900">2026年7月</h3>
+          <button class="btn-ghost text-sm">下周 ▶</button>
+        </div>
+        <div class="grid grid-cols-7 gap-2">
+          <div class="text-center text-xs font-medium text-gray-400 py-2">周一<br>7/6</div>
+          <div class="text-center text-xs font-medium text-gray-400 py-2">周二<br>7/7</div>
+          <div class="text-center text-xs font-medium text-gray-400 py-2">周三<br>7/8</div>
+          <div class="text-center text-xs font-medium text-gray-400 py-2">周四<br>7/9</div>
+          <div class="text-center text-xs font-medium text-gray-400 py-2">周五<br>7/10</div>
+          <div class="text-center text-xs font-medium text-gray-300 py-2">周六<br>7/11</div>
+          <div class="text-center text-xs font-medium text-gray-300 py-2">周日<br>7/12</div>
+
+          <div class="calendar-cell selected rounded-lg p-2 min-h-[80px] border-2 border-primary-500 bg-primary-50">
+            <div class="flex flex-wrap gap-1 mt-1">
+              <span class="badge badge-red text-[10px]">评审</span>
+              <span class="badge badge-amber text-[10px]">需求文档</span>
+            </div>
+          </div>
+          <div class="calendar-cell rounded-lg p-2 min-h-[80px] bg-gray-50">
+            <div class="flex flex-wrap gap-1 mt-1">
+              <span class="badge badge-amber text-[10px]">Q2报告</span>
+            </div>
+          </div>
+          <div class="calendar-cell rounded-lg p-2 min-h-[80px] bg-gray-50">
+            <div class="flex flex-wrap gap-1 mt-1">
+              <span class="badge badge-red text-[10px]">方案评审</span>
+              <span class="badge badge-amber text-[10px]">追问</span>
+            </div>
+          </div>
+          <div class="calendar-cell rounded-lg p-2 min-h-[80px] bg-gray-50">
+            <div class="flex flex-wrap gap-1 mt-1">
+              <span class="badge badge-amber text-[10px]">数据复盘</span>
+            </div>
+          </div>
+          <div class="calendar-cell rounded-lg p-2 min-h-[80px] bg-gray-50">
+            <div class="flex flex-wrap gap-1 mt-1">
+              <span class="badge badge-amber text-[10px]">周报生成</span>
+            </div>
+          </div>
+          <div class="calendar-cell rounded-lg p-2 min-h-[80px] bg-gray-100"></div>
+          <div class="calendar-cell rounded-lg p-2 min-h-[80px] bg-gray-100"></div>
+        </div>
+      </div>
+
+      <!-- Day Detail -->
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold text-gray-900">7月6日（周一）详情</h3>
+          <button class="btn-primary text-sm">+ 添加</button>
+        </div>
+
+        <div class="mb-4">
+          <div class="flex items-center gap-2 text-sm font-medium text-red-600 mb-2">🔴 必须解决</div>
+          <div class="card p-4 priority-must bg-gray-50">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                <div>
+                  <div class="font-medium text-gray-900 text-sm">评审登录页方案</div>
+                  <div class="text-xs text-gray-400 mt-0.5">⏰ 15:00 · 关联：📐 登录页重构方案</div>
+                </div>
+              </div>
+              <span class="badge badge-red">必须解决</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center gap-2 text-sm font-medium text-amber-600 mb-2">🟡 重点关注</div>
+          <div class="space-y-2">
+            <div class="card p-4 priority-focus bg-gray-50">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                  <div>
+                    <div class="font-medium text-gray-900 text-sm">需求文档 v2</div>
+                    <div class="text-xs text-gray-400 mt-0.5">⏰ 今天</div>
+                  </div>
+                </div>
+                <span class="badge badge-amber">重点关注</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legacy Issues Section -->
+      <div class="card p-5 mt-4">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">⚠️</span>
+            <h3 class="font-semibold text-gray-900">遗留问题</h3>
+            <span class="badge badge-red">3个未解决</span>
+          </div>
+          <button class="btn-primary text-sm">+ 新增遗留问题</button>
+        </div>
+        <div class="space-y-2">
+          <div class="card p-4 legacy-item">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <input type="checkbox" class="w-4 h-4 rounded border-gray-300 mt-0.5">
+                <div>
+                  <div class="font-medium text-gray-900 text-sm">发电量报表异常判定规则与业务方未对齐</div>
+                  <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                    <span>📅 计划解决：7月10日</span>
+                    <span>📝 记录于 7月3日</span>
+                    <span>🏷️ 需求对齐</span>
+                  </div>
+                </div>
+              </div>
+              <span class="badge badge-amber">待解决</span>
+            </div>
+          </div>
+          <div class="card p-4 legacy-item overdue">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <input type="checkbox" class="w-4 h-4 rounded border-gray-300 mt-0.5">
+                <div>
+                  <div class="font-medium text-gray-900 text-sm">智能安全帽接口文档缺少错误码说明</div>
+                  <div class="flex items-center gap-3 mt-1 text-xs">
+                    <span class="text-red-500 font-medium">📅 计划解决：7月5日（已逾期）</span>
+                    <span class="text-gray-400">📝 记录于 7月1日</span>
+                    <span class="text-gray-400">🏷️ 技术对接</span>
+                  </div>
+                </div>
+              </div>
+              <span class="badge badge-red">已逾期</span>
+            </div>
+          </div>
+          <div class="card p-4 legacy-item">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <input type="checkbox" class="w-4 h-4 rounded border-gray-300 mt-0.5">
+                <div>
+                  <div class="font-medium text-gray-900 text-sm">电费收入报表数据源权限未开通</div>
+                  <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                    <span>📅 计划解决：7月12日</span>
+                    <span>📝 记录于 7月4日</span>
+                    <span>🏷️ 基础设施</span>
+                  </div>
+                </div>
+              </div>
+              <span class="badge badge-amber">待解决</span>
+            </div>
+          </div>
+        </div>
+        <div class="mt-3 p-3 bg-orange-50 rounded-lg text-xs text-orange-600 flex items-center gap-2">
+          <span>💡</span> 遗留问题未解决前将持续显示，直到勾选「已解决」
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SCREEN: DELEGATION (PC)                                      -->
+<!-- ============================================================ -->
+<div id="screen-delegation" class="screen fade-in">
+  <div class="flex gap-0 h-[calc(100vh-120px)]">
+    <div class="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0 rounded-l-xl">
+      <div class="p-5 border-b border-gray-100">
+        <div class="text-lg font-bold text-gray-900">🤖 AI 工作台</div>
+        <div class="text-xs text-gray-400 mt-1">郭红军 · 产品经理</div>
+      </div>
+      <nav class="flex-1 p-3 space-y-1">
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('dashboard')"><span>📊</span> 仪表盘</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('knowledge')"><span>📝</span> 知识库</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('tasks')"><span>📅</span> 日程表</div>
+        <div class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm"><span>🔄</span> 委托跟进 <span class="ml-auto badge badge-amber">2</span></div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm"><span>📋</span> 日报</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('weekly')"><span>📊</span> 周报</div>
+      </nav>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 bg-bg rounded-r-xl">
+      <div class="flex items-center justify-between mb-5">
+        <h1 class="text-2xl font-bold text-gray-900">委托跟进</h1>
+        <button class="btn-primary">+ 新增委托</button>
+      </div>
+      <div class="flex gap-2 mb-5">
+        <span class="tab active">全部 (3)</span>
+        <span class="tab">⏰ 等待中 (2)</span>
+        <span class="tab">✅ 已解决 (1)</span>
+      </div>
+
+      <div class="space-y-3">
+        <!-- Active Delegation 1 -->
+        <div class="card p-5" id="delegation-1">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">⏰</span>
+              <div>
+                <div class="font-semibold text-gray-900">登录页报错 → 王工排查</div>
+                <div class="text-xs text-gray-400 mt-0.5">来源：李老板反馈</div>
+              </div>
+            </div>
+            <span class="status-badge pending">⏰ 等待中</span>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mb-3 text-sm">
+            <div><span class="text-gray-400">转出时间：</span><span class="text-gray-700">2026-07-06 10:30</span></div>
+            <div><span class="text-gray-400">优先级：</span><span class="badge badge-red">🔴 必须解决</span></div>
+            <div><span class="text-gray-400">首次追问：</span><span class="text-orange-500 font-medium">14:00（3小时后）</span></div>
+            <div><span class="text-gray-400">二次追问：</span><span class="text-orange-500 font-medium">18:00（下班前）</span></div>
+          </div>
+          <div class="delegation-detail open" id="detail-1">
+            <div class="bg-gray-50 rounded-lg p-3 mb-3 text-sm">
+              <div class="font-medium text-gray-700 mb-2">追问时间线</div>
+              <div class="space-y-2">
+                <div class="flex items-center gap-2 text-xs"><span class="w-2 h-2 rounded-full bg-orange-400"></span> 10:30 转出给王工</div>
+                <div class="flex items-center gap-2 text-xs"><span class="w-2 h-2 rounded-full bg-gray-300"></span> 14:00 首次追问提醒（待触发）</div>
+                <div class="flex items-center gap-2 text-xs"><span class="w-2 h-2 rounded-full bg-gray-300"></span> 18:00 二次追问提醒（待触发）</div>
+              </div>
+            </div>
+          </div>
+          <div class="flex gap-2 pt-3 border-t border-gray-100">
+            <button class="btn-ghost text-sm text-green-600" onclick="markDelegation('delegation-1','asked')">✅ 已追问</button>
+            <button class="btn-ghost text-sm text-blue-600" onclick="toggleModal('conclusion-modal')">💬 记录结论</button>
+            <button class="btn-ghost text-sm" onclick="changeFollowUp('delegation-1')">⏰ 修改追问</button>
+            <button class="btn-ghost text-sm text-red-400">🗑 删除</button>
+          </div>
+        </div>
+
+        <!-- Active Delegation 2 -->
+        <div class="card p-5" id="delegation-2">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">⏰</span>
+              <div>
+                <div class="font-semibold text-gray-900">接口超时 → 李工排查</div>
+                <div class="text-xs text-gray-400 mt-0.5">来源：运营反馈</div>
+              </div>
+            </div>
+            <span class="status-badge pending">⏰ 等待中</span>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mb-3 text-sm">
+            <div><span class="text-gray-400">转出时间：</span><span class="text-gray-700">2026-07-06 11:00</span></div>
+            <div><span class="text-gray-400">优先级：</span><span class="badge badge-amber">🟡 重点关注</span></div>
+            <div><span class="text-gray-400">首次追问：</span><span class="text-orange-500 font-medium">14:00</span></div>
+            <div><span class="text-gray-400">二次追问：</span><span class="text-orange-500 font-medium">18:00</span></div>
+          </div>
+          <div class="delegation-detail" id="detail-2">
+            <div class="bg-gray-50 rounded-lg p-3 mb-3 text-sm">
+              <div class="font-medium text-gray-700 mb-2">追问时间线</div>
+              <div class="space-y-2">
+                <div class="flex items-center gap-2 text-xs"><span class="w-2 h-2 rounded-full bg-orange-400"></span> 11:00 转出给李工</div>
+                <div class="flex items-center gap-2 text-xs"><span class="w-2 h-2 rounded-full bg-gray-300"></span> 14:00 首次追问提醒（待触发）</div>
+                <div class="flex items-center gap-2 text-xs"><span class="w-2 h-2 rounded-full bg-gray-300"></span> 18:00 二次追问提醒（待触发）</div>
+              </div>
+            </div>
+          </div>
+          <div class="flex gap-2 pt-3 border-t border-gray-100">
+            <button class="btn-ghost text-sm text-green-600" onclick="markDelegation('delegation-2','asked')">✅ 已追问</button>
+            <button class="btn-ghost text-sm text-blue-600" onclick="toggleModal('conclusion-modal')">💬 记录结论</button>
+            <button class="btn-ghost text-sm">⏰ 修改追问</button>
+            <button class="btn-ghost text-sm text-red-400">🗑 删除</button>
+          </div>
+        </div>
+
+        <!-- Resolved Delegation -->
+        <div class="card p-5 opacity-75" id="delegation-3">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">✅</span>
+              <div>
+                <div class="font-semibold text-gray-900">数据导出报错 → 张工排查</div>
+                <div class="text-xs text-gray-400 mt-0.5">来源：用户反馈</div>
+              </div>
+            </div>
+            <span class="status-badge resolved">✅ 已解决</span>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mb-3 text-sm">
+            <div><span class="text-gray-400">转出：</span><span class="text-gray-700">2026-07-04 15:00</span></div>
+            <div><span class="text-gray-400">解决：</span><span class="text-gray-700">2026-07-05 10:00</span></div>
+          </div>
+          <div class="delegation-detail" id="detail-3">
+            <div class="bg-green-50 rounded-lg p-3 text-sm text-green-700">
+              <span class="font-medium">结论：</span>数据库连接池配置问题，已修复发布
+            </div>
+            <div class="bg-gray-50 rounded-lg p-3 mt-2 text-sm">
+              <div class="font-medium text-gray-700 mb-2">追问时间线</div>
+              <div class="space-y-2">
+                <div class="flex items-center gap-2 text-xs"><span class="w-2 h-2 rounded-full bg-orange-400"></span> 7/4 15:00 转出给张工</div>
+                <div class="flex items-center gap-2 text-xs"><span class="w-2 h-2 rounded-full bg-green-500"></span> 7/4 18:00 已追问</div>
+                <div class="flex items-center gap-2 text-xs"><span class="w-2 h-2 rounded-full bg-green-500"></span> 7/5 10:00 张工回复，已解决</div>
+              </div>
+            </div>
+          </div>
+          <div class="flex gap-2 pt-3 border-t border-gray-100">
+            <button class="btn-ghost text-sm" onclick="toggleDetail('delegation-3')">📋 查看详情</button>
+            <button class="btn-ghost text-sm">🔄 重新打开</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SCREEN: WEEKLY REPORT (PC)                                   -->
+<!-- ============================================================ -->
+<div id="screen-weekly" class="screen fade-in">
+  <div class="flex gap-0 h-[calc(100vh-120px)]">
+    <div class="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0 rounded-l-xl">
+      <div class="p-5 border-b border-gray-100">
+        <div class="text-lg font-bold text-gray-900">🤖 AI 工作台</div>
+        <div class="text-xs text-gray-400 mt-1">郭红军 · 产品经理</div>
+      </div>
+      <nav class="flex-1 p-3 space-y-1">
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('dashboard')"><span>📊</span> 仪表盘</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('knowledge')"><span>📝</span> 知识库</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('tasks')"><span>📅</span> 日程表</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('delegation')"><span>🔄</span> 委托跟进</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm"><span>📋</span> 日报</div>
+        <div class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm"><span>📊</span> 周报</div>
+      </nav>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 bg-bg rounded-r-xl">
+      <div class="flex items-center justify-between mb-5">
+        <h1 class="text-2xl font-bold text-gray-900">周报</h1>
+        <button class="btn-primary">🔄 生成本周周报</button>
+      </div>
+
+      <!-- Historical Reports -->
+      <div class="flex gap-2 mb-5">
+        <span class="badge badge-blue cursor-pointer">第27周 (6.29-7.03)</span>
+        <span class="badge badge-gray cursor-pointer">第26周 (6.22-6.26)</span>
+        <span class="badge badge-gray cursor-pointer">第25周 (6.15-6.19)</span>
+      </div>
+
+      <!-- Report Content -->
+      <div class="card p-6 max-w-3xl">
+        <div class="prose prose-sm max-w-none">
+          <h1 class="text-xl font-bold text-gray-900 mb-1">周报：2026年第27周（6月29日 - 7月3日）</h1>
+          <p class="text-sm text-gray-400 mb-4">
+            <b>汇报人：</b>郭红军 &nbsp;&nbsp; <b>汇报周期：</b>2026年6月29日 – 7月3日
+          </p>
+          <hr class="my-4 border-gray-100">
+
+          <h2 class="text-base font-semibold text-gray-900 mt-5 mb-2">🔑 核心摘要</h2>
+          <p class="text-sm text-gray-700 leading-relaxed">本周以用户运维系统二期需求推进为主线，主导了发电量异常检查报表的需求评审与原型迭代。同时兼顾智能安全帽系统对接推进及电费收入分析报表的需求分析。关键卡点：发电量报表的异常判定规则需与业务方进一步对齐。</p>
+
+          <h2 class="text-base font-semibold text-gray-900 mt-5 mb-2">🚀 项目 / 需求交付进展</h2>
+          <ul class="text-sm text-gray-700 space-y-1.5 list-disc list-inside">
+            <li>【用户运维系统二期】完成发电量异常检查报表需求评审，梳理5条异常判定规则，历经2轮原型迭代</li>
+            <li>【智能安全帽系统】对接接口文档确认，输出操作手册初稿</li>
+            <li>【电费收入分析报表】启动需求分析，初步梳理数据源和字段范围</li>
+          </ul>
+
+          <h2 class="text-base font-semibold text-gray-900 mt-5 mb-2">✅ 具体产出</h2>
+          <ul class="text-sm text-gray-700 space-y-1.5 list-disc list-inside">
+            <li>发电量异常检查报表 PRD v2.0</li>
+            <li>智能安全帽操作手册初稿（15页）</li>
+          </ul>
+
+          <h2 class="text-base font-semibold text-gray-900 mt-5 mb-2">📋 会议 & 沟通</h2>
+          <ul class="text-sm text-gray-700 space-y-1.5 list-disc list-inside">
+            <li>参与发电量异常检查报表需求评审会（2次）</li>
+            <li>与智能安全帽厂商对接沟通</li>
+          </ul>
+
+          <h2 class="text-base font-semibold text-gray-900 mt-5 mb-2">📚 学习 & 成长</h2>
+          <ul class="text-sm text-gray-700 space-y-1.5 list-disc list-inside">
+            <li>了解「矢量数据库」概念及其在AI语义搜索中的应用</li>
+            <li>了解「K8s」基本概念（待深入）</li>
+          </ul>
+
+          <h2 class="text-base font-semibold text-gray-900 mt-5 mb-2">💡 建议</h2>
+          <ul class="text-sm text-gray-700 space-y-1.5 list-disc list-inside">
+            <li>建议发电量报表增加数据导出功能，方便业务方二次分析</li>
+          </ul>
+
+          <h2 class="text-base font-semibold text-gray-900 mt-5 mb-2">📌 下周重点计划</h2>
+          <ul class="text-sm text-gray-700 space-y-1.5 list-disc list-inside">
+            <li>推进发电量异常检查报表进入开发阶段</li>
+            <li>完成智能安全帽操作手册终稿</li>
+            <li>电费收入分析报表需求分析完成</li>
+          </ul>
+        </div>
+
+        <hr class="my-5 border-gray-100">
+        <div class="flex gap-2">
+          <button class="btn-primary text-sm">📋 复制全文</button>
+          <button class="btn-ghost text-sm">✏️ 编辑</button>
+          <button class="btn-ghost text-sm">📥 下载 Markdown</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  SCREEN: AI CHAT (PC)                                         -->
+<!-- ============================================================ -->
+<div id="screen-chat" class="screen fade-in">
+  <div class="flex gap-0 h-[calc(100vh-120px)]">
+    <div class="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0 rounded-l-xl">
+      <div class="p-5 border-b border-gray-100">
+        <div class="text-lg font-bold text-gray-900">🤖 AI 工作台</div>
+        <div class="text-xs text-gray-400 mt-1">郭红军 · 产品经理</div>
+      </div>
+      <nav class="flex-1 p-3 space-y-1">
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('dashboard')"><span>📊</span> 仪表盘</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('knowledge')"><span>📝</span> 知识库</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('tasks')"><span>📅</span> 日程表</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('delegation')"><span>🔄</span> 委托跟进</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm"><span>📋</span> 日报</div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm" onclick="switchScreen('weekly')"><span>📊</span> 周报</div>
+      </nav>
+    </div>
+
+    <div class="flex-1 flex flex-col bg-bg rounded-r-xl">
+      <!-- Chat Header -->
+      <div class="p-4 border-b border-gray-200 bg-white rounded-tr-xl">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold">AI</div>
+          <div>
+            <div class="font-semibold text-gray-900 text-sm">AI 助手</div>
+            <div class="text-xs text-gray-400">在线 · 随时为你服务</div>
+          </div>
+          <button class="ml-auto btn-ghost text-sm">🎤 语音</button>
+        </div>
+      </div>
+
+      <!-- Chat Messages -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-4">
+        <!-- AI Greeting -->
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold shrink-0">AI</div>
+          <div class="chat-bubble-ai p-3 max-w-[70%]">
+            <p class="text-sm text-gray-700 mb-2">早上好！今天你有：</p>
+            <div class="space-y-1.5 text-sm">
+              <div class="flex items-center gap-2"><span class="text-red-500">🔴</span> <b>必须解决：</b>评审登录页方案（15:00）</div>
+              <div class="flex items-center gap-2"><span class="text-amber-500">🟡</span> <b>重点关注：</b>Q2数据报告、需求文档v2、数据复盘</div>
+              <div class="flex items-center gap-2"><span class="text-amber-500">🔄</span> <b>待追问：</b>2个委托</div>
+              <div class="flex items-center gap-2"><span class="text-red-500">📝</span> <b>待了解名词：</b>5个</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Message -->
+        <div class="flex gap-3 justify-end">
+          <div class="chat-bubble-user p-3 max-w-[70%] bg-primary-50">
+            <p class="text-sm text-gray-800">记一下，K8s 不太懂</p>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-white text-xs font-bold shrink-0">郭</div>
+        </div>
+
+        <!-- AI Response -->
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold shrink-0">AI</div>
+          <div class="chat-bubble-ai p-3 max-w-[70%]">
+            <p class="text-sm text-gray-700">已添加 <b>「K8s」</b>到知识库，标记为<span class="badge badge-red">待了解</span></p>
+            <p class="text-xs text-gray-400 mt-1">当前有 5 个待了解名词，有空时可以集中查阅。</p>
+          </div>
+        </div>
+
+        <!-- User Message -->
+        <div class="flex gap-3 justify-end">
+          <div class="chat-bubble-user p-3 max-w-[70%] bg-primary-50">
+            <p class="text-sm text-gray-800">李老板反馈登录页报错了，转给王工排查，2小时后提醒我</p>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-white text-xs font-bold shrink-0">郭</div>
+        </div>
+
+        <!-- AI Response -->
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold shrink-0">AI</div>
+          <div class="chat-bubble-ai p-3 max-w-[70%]">
+            <p class="text-sm text-gray-700 mb-2">已记录委托：</p>
+            <div class="card p-3 text-sm bg-white">
+              <div class="flex items-center gap-2 mb-1">
+                <span>📋</span> <b>登录页报错 → 王工排查</b>
+              </div>
+              <div class="text-xs text-gray-400">来源：李老板</div>
+              <div class="flex items-center gap-3 mt-2">
+                <span class="text-xs text-orange-500">⏰ 2小时后提醒（12:30）</span>
+                <span class="text-xs text-orange-500">⏰ 下班前也会提醒（18:00）</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Message: Record TODO -->
+        <div class="flex gap-3 justify-end">
+          <div class="chat-bubble-user p-3 max-w-[70%] bg-primary-50">
+            <p class="text-sm text-gray-800">记录一下，今天要完成电费收入分析报表的需求文档</p>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-white text-xs font-bold shrink-0">郭</div>
+        </div>
+
+        <!-- AI Response: TODO Created -->
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold shrink-0">AI</div>
+          <div class="chat-bubble-ai p-3 max-w-[70%]">
+            <p class="text-sm text-gray-700 mb-2">已添加任务：</p>
+            <div class="card p-3 text-sm bg-white">
+              <div class="flex items-center gap-2">
+                <span>✅</span> <b>电费收入分析报表的需求文档</b>
+              </div>
+              <div class="flex items-center gap-2 mt-2">
+                <span class="badge badge-amber">🟡 重点关注</span>
+                <span class="text-xs text-gray-400">⏰ 截止今天</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Message: Query Term -->
+        <div class="flex gap-3 justify-end">
+          <div class="chat-bubble-user p-3 max-w-[70%] bg-primary-50">
+            <p class="text-sm text-gray-800">矢量数据库什么意思？</p>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-white text-xs font-bold shrink-0">郭</div>
+        </div>
+
+        <!-- AI Response: Knowledge Lookup -->
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold shrink-0">AI</div>
+          <div class="chat-bubble-ai p-3 max-w-[70%]">
+            <p class="text-sm text-gray-700 mb-2">从知识库找到「矢量数据库」：</p>
+            <div class="card p-3 text-sm bg-white">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="badge badge-green">🟢 已了解</span>
+              </div>
+              <p class="text-gray-700">专门存储和检索高维向量的数据库系统。通过向量相似度而非精确匹配来查询数据，广泛应用于 AI 语义搜索、推荐系统等场景。</p>
+              <div class="flex gap-1 mt-2">
+                <span class="tag text-[10px]">Embedding</span>
+                <span class="tag text-[10px]">ANN</span>
+                <span class="tag text-[10px]">相似度检索</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Message: TODO with Deadline -->
+        <div class="flex gap-3 justify-end">
+          <div class="chat-bubble-user p-3 max-w-[70%] bg-primary-50">
+            <p class="text-sm text-gray-800">这周三前，完成智能安全帽操作手册终稿</p>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-white text-xs font-bold shrink-0">郭</div>
+        </div>
+
+        <!-- AI Response: TODO with Deadline -->
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold shrink-0">AI</div>
+          <div class="chat-bubble-ai p-3 max-w-[70%]">
+            <p class="text-sm text-gray-700 mb-2">已添加任务：</p>
+            <div class="card p-3 text-sm bg-white">
+              <div class="flex items-center gap-2">
+                <span>✅</span> <b>完成智能安全帽操作手册终稿</b>
+              </div>
+              <div class="flex items-center gap-2 mt-2">
+                <span class="badge badge-amber">🟡 重点关注</span>
+                <span class="text-xs text-gray-400">📅 截止 7月8日（周三）</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Message: Query Today -->
+        <div class="flex gap-3 justify-end">
+          <div class="chat-bubble-user p-3 max-w-[70%] bg-primary-50">
+            <p class="text-sm text-gray-800">今天有什么重点？</p>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-white text-xs font-bold shrink-0">郭</div>
+        </div>
+
+        <!-- AI Response -->
+        <div class="flex gap-3">
+          <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold shrink-0">AI</div>
+          <div class="chat-bubble-ai p-3 max-w-[70%]">
+            <p class="text-sm text-gray-700">你今天有：</p>
+            <div class="space-y-1 text-sm mt-1">
+              <div>🔴 评审登录页方案（15:00）</div>
+              <div>🟡 Q2数据报告（截止7/10）、需求文档v2、数据复盘</div>
+              <div>🟡 电费收入分析报表需求文档（截止今天）</div>
+              <div>🔄 2个委托需要追问</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Input -->
+      <div class="p-4 border-t border-gray-200 bg-white rounded-br-xl">
+        <div class="flex items-center gap-2">
+          <input type="text" class="input-field flex-1" placeholder="输入你想做的事情...">
+          <button class="btn-primary">🎤</button>
+          <button class="btn-primary">发送</button>
+        </div>
+        <div class="flex gap-2 mt-2">
+          <span class="text-[10px] text-gray-400 cursor-pointer hover:text-primary-500">建议：记名词</span>
+          <span class="text-[10px] text-gray-400 cursor-pointer hover:text-primary-500">添加TODO</span>
+          <span class="text-[10px] text-gray-400 cursor-pointer hover:text-primary-500">转委托</span>
+          <span class="text-[10px] text-gray-400 cursor-pointer hover:text-primary-500">查日程</span>
+          <span class="text-[10px] text-gray-400 cursor-pointer hover:text-primary-500">生周报</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  MOBILE PREVIEWS                                              -->
+<!-- ============================================================ -->
+<div id="mobile-previews" class="screen fade-in justify-center gap-8 flex-wrap py-4">
+  <!-- Mobile: Dashboard -->
+  <div class="flex flex-col items-center gap-2">
+    <span class="text-xs text-gray-400 font-medium">📱 今日概览</span>
+    <div class="mobile-frame">
+      <div class="notch"></div>
+      <div class="status-bar mt-1"><span>9:41</span><span>📶 🔋</span></div>
+      <div style="height: calc(100% - 44px - 64px); overflow-y: auto; padding: 16px;">
+        <div class="text-lg font-bold text-gray-900 mb-1">AI 工作台</div>
+        <div class="text-xs text-gray-400 mb-4">今日概览 · 7月6日 周一</div>
+
+        <div class="card p-3 mb-3 bg-red-50 border-red-200">
+          <div class="flex items-center gap-2 mb-2"><span>🔴</span><span class="font-semibold text-sm">必须解决</span></div>
+          <div class="text-sm font-medium">评审登录页方案</div>
+          <div class="text-xs text-gray-400">⏰ 15:00</div>
+        </div>
+
+        <div class="card p-3 mb-3 bg-amber-50 border-amber-200">
+          <div class="flex items-center gap-2 mb-2"><span>🟡</span><span class="font-semibold text-sm">重点关注 · 3项</span></div>
+          <div class="text-sm">Q2数据报告 <span class="text-xs text-gray-400">📅 截止7/10</span></div>
+          <div class="text-sm mt-1">需求文档v2</div>
+          <div class="text-sm mt-1">数据复盘会议</div>
+        </div>
+
+        <div class="card p-3 mb-3">
+          <div class="flex items-center gap-2 mb-2"><span>🔄</span><span class="font-semibold text-sm">待追问 · 2项</span></div>
+          <div class="flex justify-between text-sm"><span>登录报错→王工</span><span class="text-orange-500 text-xs">追问@17:00</span></div>
+          <div class="flex justify-between text-sm mt-1"><span>接口超时→李工</span><span class="text-orange-500 text-xs">追问@14:00</span></div>
+        </div>
+
+        <div class="card p-3 mb-3">
+          <div class="flex items-center gap-2 mb-2"><span>📝</span><span class="font-semibold text-sm">待了解名词 · 5个</span></div>
+          <div class="flex flex-wrap gap-1">
+            <span class="tag">K8s</span><span class="tag">GraphQL</span><span class="tag">WebSocket</span><span class="tag">gRPC</span><span class="tag">消息队列</span>
+          </div>
+        </div>
+
+        <div class="card p-3 bg-gradient-to-r from-gray-50 to-blue-50">
+          <div class="flex items-center gap-2">
+            <span>💬</span>
+            <span class="text-sm text-gray-600">输入你想做的事...</span>
+            <span class="ml-auto text-lg">🎤</span>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-btn active"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>仪表</div>
+        <div class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>知识</div>
+        <div class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>日程</div>
+        <div class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>委托</div>
+        <div class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>日报</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile: Knowledge Base -->
+  <div class="flex flex-col items-center gap-2">
+    <span class="text-xs text-gray-400 font-medium">📱 知识库</span>
+    <div class="mobile-frame">
+      <div class="notch"></div>
+      <div class="status-bar mt-1"><span>9:41</span><span>📶 🔋</span></div>
+      <div style="height: calc(100% - 44px - 64px); overflow-y: auto; padding: 16px;">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-gray-400">←</span>
+          <span class="text-lg font-bold text-gray-900">知识库</span>
+        </div>
+        <input type="text" class="input-field mb-3" placeholder="🔍 搜索...">
+        <div class="flex gap-1 mb-3 overflow-x-auto">
+          <span class="tab active text-[11px]">全部</span><span class="tab text-[11px]">术语</span><span class="tab text-[11px]">方案</span><span class="tab text-[11px]">待了解</span><span class="tab text-[11px]">已了解</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div class="card p-3 aspect-square flex flex-col">
+            <div class="flex justify-between mb-1"><span class="badge badge-gray text-[10px]">术语</span><span class="badge badge-red text-[10px]"><span class="dot-red"></span></span></div>
+            <div class="flex-1 flex flex-col justify-center"><div class="font-bold text-gray-900">K8s</div><div class="text-[10px] text-gray-400">7/5</div></div>
+          </div>
+          <div class="card p-3 aspect-square flex flex-col">
+            <div class="flex justify-between mb-1"><span class="badge badge-gray text-[10px]">术语</span><span class="badge badge-green text-[10px]"><span class="dot-green"></span></span></div>
+            <div class="flex-1 flex flex-col justify-center"><div class="font-bold text-gray-900 text-sm">矢量数据库</div><div class="text-[10px] text-gray-400">6/10</div></div>
+          </div>
+          <div class="card p-3 aspect-square flex flex-col">
+            <div class="flex justify-between mb-1"><span class="badge badge-gray text-[10px]">术语</span><span class="badge badge-red text-[10px]"><span class="dot-red"></span></span></div>
+            <div class="flex-1 flex flex-col justify-center"><div class="font-bold text-gray-900">GraphQL</div><div class="text-[10px] text-gray-400">7/1</div></div>
+          </div>
+          <div class="card p-3 aspect-square flex flex-col">
+            <div class="flex justify-between mb-1"><span class="badge badge-blue text-[10px]">方案</span></div>
+            <div class="flex-1 flex flex-col justify-center"><div class="font-bold text-gray-900 text-sm leading-tight">登录页重构方案</div><div class="text-[10px] text-gray-400">7/3</div></div>
+          </div>
+          <div class="card p-3 aspect-square flex flex-col">
+            <div class="flex justify-between mb-1"><span class="badge badge-amber text-[10px]">问题</span></div>
+            <div class="flex-1 flex flex-col justify-center"><div class="font-bold text-gray-900 text-xs leading-tight">订单超时取消30分钟？</div><div class="text-[10px] text-gray-400">7/4</div></div>
+          </div>
+          <div class="card p-3 aspect-square flex flex-col">
+            <div class="flex justify-between mb-1"><span class="badge badge-blue text-[10px]">灵感</span></div>
+            <div class="flex-1 flex flex-col justify-center"><div class="font-bold text-gray-900 text-xs leading-tight">数据看板预警功能</div><div class="text-[10px] text-gray-400">7/2</div></div>
+          </div>
+        </div>
+        <button class="btn-primary w-full text-sm mt-2">+ 新增卡片</button>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-btn"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>仪表</div>
+        <div class="nav-btn active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>知识</div>
+        <div class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>日程</div>
+        <div class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>委托</div>
+        <div class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>日报</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile: Chat -->
+  <div class="flex flex-col items-center gap-2">
+    <span class="text-xs text-gray-400 font-medium">📱 AI 对话</span>
+    <div class="mobile-frame">
+      <div class="notch"></div>
+      <div class="status-bar mt-1"><span>9:41</span><span>📶 🔋</span></div>
+      <div style="height: calc(100% - 44px - 64px); display: flex; flex-direction: column;">
+        <div class="p-3 border-b border-gray-100 flex items-center gap-2">
+          <div class="w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold">AI</div>
+          <span class="font-semibold text-sm">AI 助手</span>
+          <span class="ml-auto text-lg">🎤</span>
+        </div>
+        <div class="flex-1 overflow-y-auto p-3 space-y-3">
+          <div class="chat-bubble-ai p-2.5 text-sm">🤖 早上好！今天你有 🔴1项必须解决、🟡3项重点关注...</div>
+          <div class="flex justify-end"><div class="chat-bubble-user p-2.5 text-sm bg-primary-50">记一下，K8s 不太懂</div></div>
+          <div class="chat-bubble-ai p-2.5 text-sm">已添加「K8s」到知识库，标记为待了解。当前有5个待了解名词。</div>
+          <div class="flex justify-end"><div class="chat-bubble-user p-2.5 text-sm bg-primary-50">李老板反馈登录页报错了，转给王工</div></div>
+          <div class="chat-bubble-ai p-2.5 text-sm">
+            <div>已记录委托：</div>
+            <div class="card p-2 mt-1 text-xs bg-white">
+              <div>📋 登录页报错 → 王工排查</div>
+              <div class="text-orange-500 mt-1">⏰ 3小时后提醒 | 下班前提醒</div>
+            </div>
+          </div>
+        </div>
+        <div class="p-3 border-t border-gray-100 flex items-center gap-2">
+          <input type="text" class="input-field flex-1 text-sm" placeholder="说点什么...">
+          <span class="text-xl">🎤</span>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-btn"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>仪表</div>
+        <div class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>知识</div>
+        <div class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>日程</div>
+        <div class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>委托</div>
+        <div class="nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>日报</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /max-w-[1400px] -->
+
+<!-- ============================================================ -->
+<!--  SETTINGS MODAL: API Configuration                            -->
+<!-- ============================================================ -->
+<div class="modal-overlay hidden" id="settings-modal">
+  <div class="modal modal-sm">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-lg font-bold text-gray-900">⚙️ AI 模型配置</h2>
+      <button class="text-gray-400 hover:text-gray-600 text-xl leading-none" onclick="toggleModal('settings-modal')">✕</button>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">API 提供商</label>
+        <select class="select-field">
+          <option>Anthropic (Claude)</option>
+          <option>OpenAI</option>
+          <option>自定义</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+        <input type="password" class="input-field" value="sk-ant-api••••••••••••••••" placeholder="输入 API Key">
+        <p class="text-[10px] text-gray-400 mt-1">密钥加密存储，仅用于调用 AI 模型</p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">模型</label>
+        <select class="select-field">
+          <option>claude-sonnet-5</option>
+          <option>claude-opus-4-8</option>
+          <option>claude-haiku-4-5</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">API Base URL（可选）</label>
+        <input type="text" class="input-field" placeholder="https://api.anthropic.com">
+      </div>
+      <div class="flex items-center gap-2 pt-2">
+        <button class="btn-ghost text-sm text-blue-600">🧪 测试连接</button>
+        <span class="text-xs text-green-600 hidden" id="conn-ok">✅ 连接成功</span>
+      </div>
+      <hr class="border-gray-100">
+      <div class="flex gap-2 justify-end">
+        <button class="btn-ghost text-sm" onclick="toggleModal('settings-modal')">取消</button>
+        <button class="btn-primary text-sm" onclick="toggleModal('settings-modal')">保存配置</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  DELEGATION: Conclusion Edit Modal                            -->
+<!-- ============================================================ -->
+<div class="modal-overlay hidden" id="conclusion-modal">
+  <div class="modal modal-sm">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-bold text-gray-900">📝 记录结论</h2>
+      <button class="text-gray-400 hover:text-gray-600 text-xl leading-none" onclick="toggleModal('conclusion-modal')">✕</button>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">委托事项</label>
+        <p class="text-sm text-gray-900 font-medium">登录页报错 → 王工排查</p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">开发回复结论</label>
+        <textarea class="input-field" rows="3" placeholder="输入开发排查的结论..."></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+        <select class="select-field">
+          <option>已回复（待确认）</option>
+          <option>已解决</option>
+        </select>
+      </div>
+      <div class="flex gap-2 justify-end pt-2">
+        <button class="btn-ghost text-sm" onclick="toggleModal('conclusion-modal')">取消</button>
+        <button class="btn-primary text-sm" onclick="toggleModal('conclusion-modal')">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Modal toggle
+function toggleModal(id) {
+  document.getElementById(id).classList.toggle('hidden');
+}
+
+// Delegation detail toggle
+function toggleDetail(cardId) {
+  const detail = document.getElementById('detail-' + cardId.split('-')[1]);
+  if (detail) detail.classList.toggle('open');
+}
+
+// Mark delegation status
+function markDelegation(cardId, action) {
+  const card = document.getElementById(cardId);
+  const badge = card.querySelector('.status-badge');
+  if (action === 'asked') {
+    badge.className = 'status-badge replied';
+    badge.textContent = '💬 已追问';
+    // Update timeline
+    const timeline = card.querySelector('.delegation-detail');
+    if (timeline) {
+      timeline.classList.add('open');
+      const dots = timeline.querySelectorAll('.w-2.h-2.rounded-full');
+      dots.forEach(d => {
+        if (d.classList.contains('bg-gray-300')) {
+          d.classList.remove('bg-gray-300');
+          d.classList.add('bg-green-500');
+          return;
+        }
+      });
+    }
+  }
+}
+
+// Change follow-up time
+function changeFollowUp(cardId) {
+  const newTime = prompt('请输入新的追问时间（例如：16:00 或 "明天10:00"）：');
+  if (newTime) {
+    const card = document.getElementById(cardId);
+    const timeEls = card.querySelectorAll('.text-orange-500');
+    if (timeEls.length > 0) {
+      timeEls[0].textContent = newTime + '（自定义）';
+    }
+  }
+}
+
+// Screen switching
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const isMobile = document.getElementById('mode-mobile').classList.contains('active');
+
+  if (isMobile && name !== 'mobile') {
+    // In mobile mode, show mobile previews for any screen
+    document.getElementById('mobile-previews').classList.add('active');
+  } else {
+    const screen = document.getElementById('screen-' + name);
+    if (screen) screen.classList.add('active');
+  }
+
+  // Update top bar tabs
+  document.querySelectorAll('[id^="tab-"]').forEach(t => t.classList.remove('active'));
+  const tab = document.getElementById('tab-' + name);
+  if (tab) tab.classList.add('active');
+}
+
+// Mode switching
+function setMode(mode) {
+  document.getElementById('mode-pc').classList.toggle('active', mode === 'pc');
+  document.getElementById('mode-mobile').classList.toggle('active', mode === 'mobile');
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+
+  if (mode === 'mobile') {
+    document.getElementById('mobile-previews').classList.add('active');
+    document.querySelectorAll('[id^="tab-"]').forEach(t => t.classList.remove('active'));
+  } else {
+    document.getElementById('screen-dashboard').classList.add('active');
+    document.querySelectorAll('[id^="tab-"]').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-dashboard').classList.add('active');
+  }
+}
+</script>
+
+</body>
+</html>

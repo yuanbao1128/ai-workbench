@@ -1,0 +1,148 @@
+// Prisma Schema for AI 工作台
+// Design reference: openspec/changes/ai-workbench/design.md
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// Models
+// ============================================================
+
+model Card {
+  id           String     @id @default(cuid())
+  title        String
+  type         CardType
+  status       CardStatus @default(UNKNOWN)
+  content      String?
+  keyConcepts  String     @default("[]") // JSON array stored as string for SQLite
+  relatedCards String     @default("[]") // JSON array stored as string for SQLite
+  source       String?
+  history      String     @default("[]") // JSON array stored as string for SQLite
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Task {
+  id           String     @id @default(cuid())
+  title        String
+  priority     Priority   @default(NORMAL)
+  status       TaskStatus @default(TODO)
+  dueDate      DateTime?
+  relatedCards String     @default("[]") // JSON array stored as string
+  createdAt    DateTime   @default(now())
+  completedAt  DateTime?
+}
+
+model LegacyIssue {
+  id          String      @id @default(cuid())
+  title       String
+  plannedDate DateTime?
+  status      IssueStatus @default(PENDING)
+  tags        String      @default("[]") // JSON array stored as string
+  createdAt   DateTime    @default(now())
+  resolvedAt  DateTime?
+}
+
+model Delegation {
+  id             String            @id @default(cuid())
+  title          String
+  assignee       String
+  source         String?
+  status         DelegationStatus  @default(WAITING)
+  priority       Priority          @default(NORMAL)
+  followUpTimes  String            @default("[]") // JSON array of DateTime strings
+  customFollowUp String?
+  conclusion     String?
+  timeline       String            @default("[]") // JSON array of timeline events
+  createdAt      DateTime          @default(now())
+  resolvedAt     DateTime?
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  description String
+  refId       String?
+  refType     String?
+  timestamp   DateTime     @default(now())
+}
+
+model Report {
+  id        String     @id @default(cuid())
+  type      ReportType
+  dateRange String
+  content   String     // Markdown
+  createdAt DateTime   @default(now())
+}
+
+model Setting {
+  id          String   @id @default("app-settings")
+  apiProvider String   @default("anthropic")
+  apiKey      String   @default("") // encrypted
+  model       String   @default("claude-sonnet-5")
+  baseUrl     String?
+  updatedAt   DateTime @updatedAt
+}
+
+// ============================================================
+// Enums
+// ============================================================
+
+enum CardType {
+  TERM
+  DESIGN
+  INSPIRATION
+  MEETING
+  QUESTION
+}
+
+enum CardStatus {
+  UNKNOWN
+  KNOWN
+}
+
+enum Priority {
+  MUST
+  FOCUS
+  NORMAL
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum IssueStatus {
+  PENDING
+  RESOLVED
+}
+
+enum DelegationStatus {
+  WAITING
+  ASKED
+  REPLIED
+  RESOLVED
+}
+
+enum ActivityType {
+  TASK_DONE
+  CARD_ADDED
+  CARD_LEARNED
+  DELEGATION_CREATED
+  DELEGATION_RESOLVED
+  MEETING
+  DESIGN
+}
+
+enum ReportType {
+  DAILY
+  WEEKLY
+}
