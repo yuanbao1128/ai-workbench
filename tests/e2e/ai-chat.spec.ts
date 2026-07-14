@@ -5,12 +5,12 @@ test.describe('AI Chat', () => {
     await page.goto('/chat')
     await expect(page.getByText('AI 助手')).toBeVisible()
 
-    // Quick suggestions
-    await expect(page.getByText('记名词')).toBeVisible()
-    await expect(page.getByText('添加TODO')).toBeVisible()
-    await expect(page.getByText('转委托')).toBeVisible()
-    await expect(page.getByText('查日程')).toBeVisible()
-    await expect(page.getByText('生周报')).toBeVisible()
+    // Quick suggestions - use button role
+    await expect(page.getByRole('button', { name: '记名词' })).toBeVisible()
+    await expect(page.getByRole('button', { name: '添加TODO' })).toBeVisible()
+    await expect(page.getByRole('button', { name: '转委托' })).toBeVisible()
+    await expect(page.getByRole('button', { name: '查日程' })).toBeVisible()
+    await expect(page.getByRole('button', { name: '生周报' })).toBeVisible()
   })
 
   test('should send message and receive response', async ({ page }) => {
@@ -21,6 +21,6 @@ test.describe('AI Chat', () => {
 
     // Wait for response
     await page.waitForTimeout(3000)
-    await expect(page.getByText(/已创建|K8s|术语/)).toBeVisible()
+    await expect(page.getByText(/已创建|K8s|术语/).first()).toBeVisible()
   })
 })

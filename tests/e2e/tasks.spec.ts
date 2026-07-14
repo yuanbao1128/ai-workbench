@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Schedule & Legacy Issues', () => {
   test('should display week calendar and navigate weeks', async ({ page }) => {
     await page.goto('/tasks')
-    await expect(page.getByText('日程表')).toBeVisible()
+    await expect(page.getByRole('heading', { name: '日程表' })).toBeVisible()
 
     // Calendar grid has 7 days
     await expect(page.getByText('一')).toBeVisible()

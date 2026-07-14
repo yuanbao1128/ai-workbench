@@ -9,7 +9,7 @@ test.describe('Delegation Tracking', () => {
     })
 
     await page.goto('/delegation')
-    await expect(page.getByText('委托跟进')).toBeVisible()
+    await expect(page.getByRole('heading', { name: '委托跟进' })).toBeVisible()
     await expect(page.getByText(title)).toBeVisible()
     await expect(page.getByText('王工')).toBeVisible()
   })

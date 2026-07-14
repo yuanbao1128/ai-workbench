@@ -7,7 +7,7 @@ test.describe('Knowledge Base', () => {
     const title = unique()
 
     await page.goto('/knowledge')
-    await expect(page.getByText('知识库')).toBeVisible()
+    await expect(page.getByRole('heading', { name: '知识库' })).toBeVisible()
 
     // Create card via API (simulating AI creation)
     const response = await page.request.post('/api/knowledge', {
@@ -25,7 +25,7 @@ test.describe('Knowledge Base', () => {
 
     // Click TERM filter tab
     await page.getByRole('button', { name: '术语' }).click()
-    await expect(page.getByText('待了解')).toBeVisible()
+    await expect(page.getByRole('button', { name: '待了解' })).toBeVisible()
 
     // Click ALL filter tab
     await page.getByRole('button', { name: '全部' }).first().click()
@@ -51,7 +51,7 @@ test.describe('Knowledge Base', () => {
     const card = await response.json()
 
     await page.goto(`/knowledge/${card.id}`)
-    await expect(page.getByText(title)).toBeVisible()
+    await expect(page.getByRole('heading', { name: title })).toBeVisible()
 
     // Mark as known
     await page.getByRole('button', { name: '标记为已了解' }).click()
