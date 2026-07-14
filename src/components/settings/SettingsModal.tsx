@@ -50,7 +50,6 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
   const handleTest = async () => {
     setTestResult(null)
     try {
-      // Test by making a simple API call
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -76,7 +75,13 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
           <select
             className="w-full border border-gray-200 rounded-lg p-2 text-sm"
             value={provider}
-            onChange={(e) => setProvider(e.target.value)}
+            onChange={(e) => {
+              const p = e.target.value
+              setProvider(p)
+              if (p === 'anthropic') setModel('claude-sonnet-5')
+              if (p === 'openai') setModel('gpt-4o')
+              if (p === 'custom') setModel('')
+            }}
           >
             <option value="anthropic">Anthropic</option>
             <option value="openai">OpenAI</option>
@@ -85,11 +90,13 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            API Key（{provider === 'openai' ? 'OPENAI_API_KEY' : 'ANTHROPIC_API_KEY'}）
+          </label>
           <input
             type="password"
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary"
-            placeholder="sk-ant-api03-..."
+            placeholder={provider === 'openai' ? 'sk-proj-...' : 'sk-ant-api03-...'}
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
           />
@@ -113,24 +120,28 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
               <>
                 <option value="gpt-4o">gpt-4o</option>
                 <option value="gpt-4o-mini">gpt-4o-mini</option>
+                <option value="gpt-4">gpt-4</option>
+                <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
               </>
             )}
             {provider === 'custom' && (
-              <option value={model}>{model}</option>
+              <option value={model}>{model || '自定义模型'}</option>
             )}
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">API Base URL（可选）</label>
-          <input
-            type="text"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary"
-            placeholder="https://api.anthropic.com"
-            value={baseUrl}
-            onChange={(e) => setBaseUrl(e.target.value)}
-          />
-        </div>
+        {provider === 'custom' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">API Base URL</label>
+            <input
+              type="text"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary"
+              placeholder="https://api.example.com/v1"
+              value={baseUrl}
+              onChange={(e) => setBaseUrl(e.target.value)}
+            />
+          </div>
+        )}
 
         {testResult && (
           <div className={`text-sm font-medium ${testResult.includes('✅') ? 'text-green-600' : 'text-red-600'}`}>

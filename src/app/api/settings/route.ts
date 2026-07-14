@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
+interface SettingsInput {
+  apiProvider: string
+  apiKey: string
+  model: string
+  baseUrl?: string
+}
+
 export async function GET() {
   let settings = await prisma.setting.findUnique({
     where: { id: 'app-settings' },
@@ -12,7 +19,6 @@ export async function GET() {
     })
   }
 
-  // Return settings with masked API key
   return NextResponse.json({
     ...settings,
     apiKey: settings.apiKey ? maskApiKey(settings.apiKey) : '',
@@ -20,14 +26,14 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
-  const body = await request.json()
+  const body = (await request.json()) as SettingsInput
   const { apiProvider, apiKey, model, baseUrl } = body
 
   const settings = await prisma.setting.upsert({
     where: { id: 'app-settings' },
     update: {
       apiProvider: apiProvider || 'anthropic',
-      apiKey: apiKey || '', // In production, encrypt this
+      apiKey: apiKey || '',
       model: model || 'claude-sonnet-5',
       baseUrl: baseUrl || null,
     },
@@ -39,6 +45,18 @@ export async function PUT(request: NextRequest) {
       baseUrl: baseUrl || null,
     },
   })
+
+  // Sync env vars for current request/runtime
+  if (apiProvider) process.env.AI_PROVIDER = apiProvider
+  if (apiKey) {
+    if (apiProvider === 'openai') {
+      process.env.OPENAI_API_KEY = apiKey
+    } else {
+      process.env.ANTHROPIC_API_KEY = apiKey
+    }
+  }
+  if (model) process.env.AI_MODEL = model
+  if (baseUrl) process.env.AI_BASE_URL = baseUrl
 
   return NextResponse.json({
     ...settings,

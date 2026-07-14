@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { chat } from '@/lib/ai/client'
 import { parseIntentResponse, IntentType } from '@/lib/ai/intent'
 import { routeIntent } from '@/lib/ai/router'
+import { prisma } from '@/lib/db'
+import { AIProvider } from '@/lib/ai/client'
 
 const SYSTEM_PROMPT = `你是一个意图识别助手。分析用户的中文输入，返回 JSON 格式的意图识别结果。
 
@@ -22,6 +24,40 @@ const SYSTEM_PROMPT = `你是一个意图识别助手。分析用户的中文输
 返回格式（必须是纯 JSON）：
 {"intents":[{"type":"ADD_TERM","confidence":0.95,"entities":{"title":"K8s"}}]}`
 
+async function loadAISettings() {
+  const settings = await prisma.setting.findUnique({
+    where: { id: 'app-settings' },
+  })
+
+  if (!settings || !settings.apiKey) {
+    return null
+  }
+
+  return {
+    provider: settings.apiProvider as AIProvider,
+    apiKey: settings.apiKey,
+    model: settings.model,
+    baseUrl: settings.baseUrl || undefined,
+  }
+}
+
+function hasApiKey(): boolean {
+  const provider = process.env.AI_PROVIDER || 'anthropic'
+  if (provider === 'openai') return !!process.env.OPENAI_API_KEY
+  if (provider === 'custom') return !!process.env.OPENAI_API_KEY || !!process.env.ANTHROPIC_API_KEY
+  return !!process.env.ANTHROPIC_API_KEY
+}
+
+function getFirstText(content: unknown[]): string {
+  if (!Array.isArray(content)) return ''
+  return content
+    .filter((block): block is { type: string; text: string } => {
+      return typeof block === 'object' && block !== null && 'type' in block && 'text' in block
+    })
+    .map((block) => block.text)
+    .join('\n')
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { message } = await request.json()
@@ -30,23 +66,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 })
     }
 
-    // Check if ANTHROPIC_API_KEY is configured
-    const hasApiKey = !!process.env.ANTHROPIC_API_KEY
+    // Load settings from database
+    const dbSettings = await loadAISettings()
+    const hasEnvKey = hasApiKey()
 
     let intents: { type: IntentType; confidence: number; entities: Record<string, string | null> }[]
 
-    if (hasApiKey) {
+    if (dbSettings || hasEnvKey) {
       try {
+        const config = dbSettings || undefined
         const response = await chat(
           [{ role: 'user', content: message }],
-          SYSTEM_PROMPT
+          SYSTEM_PROMPT,
+          config
         )
 
-        const text = response.content
-          .filter((block) => block.type === 'text')
-          .map((block) => (block as { type: 'text'; text: string }).text)
-          .join('\n')
-
+        const text = getFirstText(response.content)
         intents = parseIntentResponse(text)
       } catch {
         // Fallback to keyword matching

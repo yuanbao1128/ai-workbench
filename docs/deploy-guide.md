@@ -4,16 +4,25 @@
 
 ---
 
-## 第一步：获取 Anthropic API Key（5分钟）
+## 第一步：获取 AI API Key（5分钟）
 
-这是让 AI 对话功能工作的前提。
+这是让 AI 对话功能工作的前提。系统支持 **Anthropic**、**OpenAI**、**自定义 API** 三种提供商。
 
-1. 打开浏览器，访问 https://console.anthropic.com/
+### 如果使用 OpenAI（推荐）
+
+1. 打开 [OpenAI API Keys](https://platform.openai.com/api-keys)
+2. 登录 OpenAI 账号
+3. 点击 **Create new secret key**
+4. 给 Key 取个名字（如 `ai-workbench`），点击创建
+5. **立即复制** 生成的 Key（格式：`sk-proj-...`），它只显示一次
+
+### 如果使用 Anthropic
+
+1. 打开 [Anthropic Console](https://console.anthropic.com/)
 2. 注册/登录 Anthropic 账号
 3. 点击左侧菜单 **API Keys** → 点击 **Create Key**
 4. 给 Key 取个名字（如 `ai-workbench`），点击创建
 5. **立即复制** 生成的 Key（格式：`sk-ant-api03-...`），它只显示一次
-6. 保存好这个 Key，后面要用
 
 > ⚠️ API 调用会按量计费。个人使用量很小，一个月大概几块钱。
 
