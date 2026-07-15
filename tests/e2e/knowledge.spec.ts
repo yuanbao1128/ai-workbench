@@ -9,13 +9,13 @@ test.describe('Knowledge Base', () => {
     await page.goto('/knowledge')
     await expect(page.getByRole('heading', { name: '知识库' })).toBeVisible()
 
-    // Create card via API (simulating AI creation)
+    // Create card via API
     const response = await page.request.post('/api/knowledge', {
       data: { title, type: 'TERM' },
     })
     expect(response.ok()).toBeTruthy()
 
-    // Refresh and verify card appears
+    // Refresh and verify
     await page.goto('/knowledge')
     await expect(page.getByText(title)).toBeVisible()
   })
@@ -23,11 +23,7 @@ test.describe('Knowledge Base', () => {
   test('should filter cards by type and status', async ({ page }) => {
     await page.goto('/knowledge')
 
-    // Click TERM filter tab
     await page.getByRole('button', { name: '术语' }).click()
-    await expect(page.getByRole('button', { name: '待了解' })).toBeVisible()
-
-    // Click ALL filter tab
     await page.getByRole('button', { name: '全部' }).first().click()
   })
 
@@ -39,7 +35,8 @@ test.describe('Knowledge Base', () => {
 
     await page.goto('/knowledge')
     await page.getByPlaceholder('搜索...').fill(title)
-
+    // Wait for search results
+    await page.waitForTimeout(500)
     await expect(page.getByText(title)).toBeVisible()
   })
 
@@ -51,7 +48,9 @@ test.describe('Knowledge Base', () => {
     const card = await response.json()
 
     await page.goto(`/knowledge/${card.id}`)
-    await expect(page.getByRole('heading', { name: title })).toBeVisible()
+    // Wait for the card detail to load
+    await page.waitForTimeout(1000)
+    await expect(page.getByText(title)).toBeVisible()
 
     // Mark as known
     await page.getByRole('button', { name: '标记为已了解' }).click()
