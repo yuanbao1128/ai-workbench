@@ -23,7 +23,9 @@ export async function GET(request: NextRequest) {
       orderBy: { updatedAt: 'desc' },
     })
 
-    return NextResponse.json(cards)
+    const response = NextResponse.json(cards)
+    response.headers.set('Cache-Control', 'public, max-age=5, stale-while-revalidate=30')
+    return response
   } catch (error) {
     return NextResponse.json(
       { error: (error as Error).message },

@@ -22,7 +22,9 @@ export async function GET(request: NextRequest) {
     orderBy: [{ priority: 'asc' }, { createdAt: 'desc' }],
   })
 
-  return NextResponse.json(tasks)
+  const response = NextResponse.json(tasks)
+  response.headers.set('Cache-Control', 'public, max-age=5, stale-while-revalidate=30')
+  return response
 }
 
 export async function POST(request: NextRequest) {

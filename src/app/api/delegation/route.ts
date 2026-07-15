@@ -20,7 +20,9 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: 'desc' },
   })
 
-  return NextResponse.json(delegations)
+  const response = NextResponse.json(delegations)
+  response.headers.set('Cache-Control', 'public, max-age=5, stale-while-revalidate=30')
+  return response
 }
 
 export async function POST(request: NextRequest) {
