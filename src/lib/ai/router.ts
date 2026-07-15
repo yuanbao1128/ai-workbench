@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/db'
-import type { CardType, Priority } from '@prisma/client'
 import { IntentType } from './intent'
 import { generateDailyReport } from '@/lib/reports/daily'
 import { generateWeeklyReport } from '@/lib/reports/weekly'
@@ -28,7 +27,7 @@ export async function routeIntent(
       const card = await prisma.card.create({
         data: {
           title: entities.title || '未命名',
-          type: cardType as CardType,
+          type: cardType as string,
           status: cardType === 'TERM' ? 'UNKNOWN' : 'UNKNOWN',
           content: entities.content || null,
           source: entities.source || null,
@@ -53,7 +52,7 @@ export async function routeIntent(
       const task = await prisma.task.create({
         data: {
           title: entities.title || '未命名任务',
-          priority: (entities.priority as Priority) || 'NORMAL',
+          priority: (entities.priority as string) || 'NORMAL',
           dueDate: entities.dueDate ? new Date(entities.dueDate) : new Date(),
           relatedCards: '[]',
         },

@@ -1,5 +1,5 @@
 // Prisma Schema for AI 工作台
-// Design reference: openspec/changes/ai-workbench/design.md
+// Uses String instead of enum for PostgreSQL compatibility
 
 generator client {
   provider      = "prisma-client-js"
@@ -17,133 +17,77 @@ datasource db {
 // ============================================================
 
 model Card {
-  id           String     @id @default(cuid())
+  id           String   @id @default(cuid())
   title        String
-  type         CardType
-  status       CardStatus @default(UNKNOWN)
+  type         String   @default("TERM")
+  status       String   @default("UNKNOWN")
   content      String?
-  keyConcepts  String     @default("[]") // JSON array stored as string for SQLite
-  relatedCards String     @default("[]") // JSON array stored as string for SQLite
+  keyConcepts  String   @default("[]")
+  relatedCards String   @default("[]")
   source       String?
-  history      String     @default("[]") // JSON array stored as string for SQLite
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  history      String   @default("[]")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Task {
-  id           String     @id @default(cuid())
+  id           String   @id @default(cuid())
   title        String
-  priority     Priority   @default(NORMAL)
-  status       TaskStatus @default(TODO)
+  priority     String   @default("NORMAL")
+  status       String   @default("TODO")
   dueDate      DateTime?
-  relatedCards String     @default("[]") // JSON array stored as string
-  createdAt    DateTime   @default(now())
+  relatedCards String   @default("[]")
+  createdAt    DateTime @default(now())
   completedAt  DateTime?
 }
 
 model LegacyIssue {
-  id          String      @id @default(cuid())
+  id          String   @id @default(cuid())
   title       String
   plannedDate DateTime?
-  status      IssueStatus @default(PENDING)
-  tags        String      @default("[]") // JSON array stored as string
-  createdAt   DateTime    @default(now())
+  status      String   @default("PENDING")
+  tags        String   @default("[]")
+  createdAt   DateTime @default(now())
   resolvedAt  DateTime?
 }
 
 model Delegation {
-  id             String            @id @default(cuid())
+  id             String   @id @default(cuid())
   title          String
   assignee       String
   source         String?
-  status         DelegationStatus  @default(WAITING)
-  priority       Priority          @default(NORMAL)
-  followUpTimes  String            @default("[]") // JSON array of DateTime strings
+  status         String   @default("WAITING")
+  priority       String   @default("NORMAL")
+  followUpTimes  String   @default("[]")
   customFollowUp String?
   conclusion     String?
-  timeline       String            @default("[]") // JSON array of timeline events
-  createdAt      DateTime          @default(now())
+  timeline       String   @default("[]")
+  createdAt      DateTime @default(now())
   resolvedAt     DateTime?
 }
 
 model Activity {
-  id          String       @id @default(cuid())
-  type        ActivityType
+  id          String   @id @default(cuid())
+  type        String
   description String
   refId       String?
   refType     String?
-  timestamp   DateTime     @default(now())
+  timestamp   DateTime @default(now())
 }
 
 model Report {
-  id        String     @id @default(cuid())
-  type      ReportType
+  id        String   @id @default(cuid())
+  type      String
   dateRange String
-  content   String     // Markdown
-  createdAt DateTime   @default(now())
+  content   String
+  createdAt DateTime @default(now())
 }
 
 model Setting {
   id          String   @id @default("app-settings")
   apiProvider String   @default("anthropic")
-  apiKey      String   @default("") // encrypted
+  apiKey      String   @default("")
   model       String   @default("claude-sonnet-5")
   baseUrl     String?
   updatedAt   DateTime @updatedAt
-}
-
-// ============================================================
-// Enums
-// ============================================================
-
-enum CardType {
-  TERM
-  DESIGN
-  INSPIRATION
-  MEETING
-  QUESTION
-}
-
-enum CardStatus {
-  UNKNOWN
-  KNOWN
-}
-
-enum Priority {
-  MUST
-  FOCUS
-  NORMAL
-}
-
-enum TaskStatus {
-  TODO
-  IN_PROGRESS
-  DONE
-}
-
-enum IssueStatus {
-  PENDING
-  RESOLVED
-}
-
-enum DelegationStatus {
-  WAITING
-  ASKED
-  REPLIED
-  RESOLVED
-}
-
-enum ActivityType {
-  TASK_DONE
-  CARD_ADDED
-  CARD_LEARNED
-  DELEGATION_CREATED
-  DELEGATION_RESOLVED
-  MEETING
-  DESIGN
-}
-
-enum ReportType {
-  DAILY
-  WEEKLY
 }
