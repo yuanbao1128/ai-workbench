@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db'
-import type { CardType, Priority } from '@/generated/prisma/client'
+import type { CardType, Priority } from '@prisma/client'
 import { IntentType } from './intent'
 import { generateDailyReport } from '@/lib/reports/daily'
 import { generateWeeklyReport } from '@/lib/reports/weekly'

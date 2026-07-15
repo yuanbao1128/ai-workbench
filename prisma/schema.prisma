@@ -2,8 +2,7 @@
 // Design reference: openspec/changes/ai-workbench/design.md
 
 generator client {
-  provider      = "prisma-client"
-  output        = "../src/generated/prisma"
+  provider      = "prisma-client-js"
   engineType    = "library"
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
