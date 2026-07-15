@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { prisma } from '@/lib/db'
 import { ReportsView } from './ReportsView'
 
@@ -21,5 +22,9 @@ export default async function ReportsPage({
     orderBy: { createdAt: 'desc' },
   })
 
-  return <ReportsView reports={JSON.parse(JSON.stringify(reports))} />
+  return (
+    <Suspense fallback={<div className="text-center text-gray-400 py-12">加载中...</div>}>
+      <ReportsView reports={JSON.parse(JSON.stringify(reports))} />
+    </Suspense>
+  )
 }

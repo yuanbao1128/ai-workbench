@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { prisma } from '@/lib/db'
 import { TasksView } from './TasksView'
 import { getWeekStart, getWeekEnd } from '@/lib/date-utils'
@@ -19,9 +20,11 @@ export default async function TasksPage() {
   ])
 
   return (
-    <TasksView
-      tasks={JSON.parse(JSON.stringify(tasks))}
-      issues={JSON.parse(JSON.stringify(issues))}
-    />
+    <Suspense fallback={<div className="text-center text-gray-400 py-12">加载中...</div>}>
+      <TasksView
+        tasks={JSON.parse(JSON.stringify(tasks))}
+        issues={JSON.parse(JSON.stringify(issues))}
+      />
+    </Suspense>
   )
 }

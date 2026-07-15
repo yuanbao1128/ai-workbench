@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { prisma } from '@/lib/db'
 import { KnowledgeList } from './KnowledgeList'
 
@@ -30,5 +31,9 @@ export default async function KnowledgePage({
     orderBy: { updatedAt: 'desc' },
   })
 
-  return <KnowledgeList cards={JSON.parse(JSON.stringify(cards))} />
+  return (
+    <Suspense fallback={<div className="text-center text-gray-400 py-12">加载中...</div>}>
+      <KnowledgeList cards={JSON.parse(JSON.stringify(cards))} />
+    </Suspense>
+  )
 }
