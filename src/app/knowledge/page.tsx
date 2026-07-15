@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { KnowledgeList } from './KnowledgeList'
 
@@ -10,26 +11,33 @@ interface SearchParams {
   search?: string
 }
 
+const getCards = unstable_cache(
+  async (type?: string, status?: string, search?: string) => {
+    const where: Record<string, unknown> = {}
+    if (type) where.type = type
+    if (status) where.status = status
+    if (search) {
+      where.OR = [
+        { title: { contains: search } },
+        { content: { contains: search } },
+      ]
+    }
+    return prisma.card.findMany({
+      where,
+      orderBy: { updatedAt: 'desc' },
+    })
+  },
+  ['knowledge-cards'],
+  { revalidate: 10, tags: ['knowledge'] }
+)
+
 export default async function KnowledgePage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>
 }) {
   const params = await searchParams
-  const where: Record<string, unknown> = {}
-  if (params.type) where.type = params.type
-  if (params.status) where.status = params.status
-  if (params.search) {
-    where.OR = [
-      { title: { contains: params.search } },
-      { content: { contains: params.search } },
-    ]
-  }
-
-  const cards = await prisma.card.findMany({
-    where,
-    orderBy: { updatedAt: 'desc' },
-  })
+  const cards = await getCards(params.type, params.status, params.search)
 
   return (
     <Suspense fallback={<div className="text-center text-gray-400 py-12">加载中...</div>}>
