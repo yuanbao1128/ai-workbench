@@ -12,7 +12,7 @@ test.describe('Dashboard', () => {
     await expect(page.getByRole('link', { name: /必须解决/ })).toBeVisible()
     await expect(page.getByRole('link', { name: /重点关注/ })).toBeVisible()
     await expect(page.getByRole('link', { name: /待追问/ })).toBeVisible()
-    await expect(page.getByRole('link', { name: /待了解名词/ })).toBeVisible()
+    await expect(page.getByRole('link', { name: /待了解名词/ }).last()).toBeVisible()
 
     // Quick chat input
     await expect(page.getByPlaceholder('输入消息... 如：记一下K8s不懂')).toBeVisible()
