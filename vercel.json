@@ -9,7 +9,7 @@
     {
       "source": "/api/(knowledge|tasks|legacy-issues|delegation|reports)(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=10, stale-while-revalidate=59" }
+        { "key": "Cache-Control", "value": "public, max-age=30, stale-while-revalidate=60, s-maxage=30" }
       ]
     }
   ]
