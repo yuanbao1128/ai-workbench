@@ -4,5 +4,13 @@
     { "path": "/api/cron/daily-report", "schedule": "0 18 * * 1-5" },
     { "path": "/api/cron/weekly-report", "schedule": "0 18 * * 5" },
     { "path": "/api/cron/morning-brief", "schedule": "0 9 * * 1-5" }
+  ],
+  "headers": [
+    {
+      "source": "/((?!api|_next).*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=10, stale-while-revalidate=59" }
+      ]
+    }
   ]
 }
