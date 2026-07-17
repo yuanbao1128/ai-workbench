@@ -7,7 +7,7 @@
   ],
   "headers": [
     {
-      "source": "/api/(knowledge|tasks|legacy-issues|delegation|reports)(.*)",
+      "source": "/api/(knowledge|tasks|legacy-issues|delegation|reports|follow-ups|dashboard)(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=30, stale-while-revalidate=60, s-maxage=30" }
       ]

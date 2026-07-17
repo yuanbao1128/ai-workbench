@@ -1,0 +1,13 @@
+- generic [active] [ref=f7e1]:
+  - main [ref=f7e3]
+  - navigation [ref=f7e12]:
+    - link "仪表" [ref=f7e13] [cursor=pointer]:
+      - /url: /
+    - link "知识" [ref=f7e19] [cursor=pointer]:
+      - /url: /knowledge
+    - link "日程" [ref=f7e22] [cursor=pointer]:
+      - /url: /tasks
+    - link "日报" [ref=f7e25] [cursor=pointer]:
+      - /url: /reports
+    - link "AI" [ref=f7e29] [cursor=pointer]:
+      - /url: /chat

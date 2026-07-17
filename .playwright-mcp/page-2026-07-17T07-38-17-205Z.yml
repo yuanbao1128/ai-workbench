@@ -1,0 +1,31 @@
+- generic [active] [ref=f8e1]:
+  - main [ref=f8e3]:
+    - generic [ref=f8e5]:
+      - generic [ref=f8e6]:
+        - generic [ref=f8e7]: 🤖
+        - generic [ref=f8e8]: AI 助手
+        - generic [ref=f8e9]: 在线
+      - generic [ref=f8e13]:
+        - paragraph [ref=f8e14]: 👋 你好！我是你的 AI 助手
+        - paragraph [ref=f8e15]: 可以帮你记名词、添加任务、转委托、查日程、生成周报
+      - generic [ref=f8e16]:
+        - button "记名词" [ref=f8e17]
+        - button "添加TODO" [ref=f8e18]
+        - button "转委托" [ref=f8e19]
+        - button "查日程" [ref=f8e20]
+        - button "生周报" [ref=f8e21]
+      - generic [ref=f8e23]:
+        - button "🎤" [ref=f8e24]
+        - textbox "输入消息..." [ref=f8e26]
+        - button "↑" [disabled] [ref=f8e27]
+  - navigation [ref=f8e29]:
+    - link "仪表" [ref=f8e30] [cursor=pointer]:
+      - /url: /
+    - link "知识" [ref=f8e36] [cursor=pointer]:
+      - /url: /knowledge
+    - link "日程" [ref=f8e39] [cursor=pointer]:
+      - /url: /tasks
+    - link "日报" [ref=f8e42] [cursor=pointer]:
+      - /url: /reports
+    - link "AI" [ref=f8e46] [cursor=pointer]:
+      - /url: /chat

@@ -15,8 +15,8 @@ const navItems: NavItem[] = [
   { icon: '📊', label: '仪表盘', href: '/' },
   { icon: '📝', label: '知识库', href: '/knowledge', badge: 0, badgeVariant: 'red' },
   { icon: '📅', label: '日程表', href: '/tasks' },
-  { icon: '🔄', label: '委托跟进', href: '/delegation', badge: 0, badgeVariant: 'amber' },
   { icon: '📋', label: '日报', href: '/reports' },
+  { icon: '📊', label: '周报', href: '/weekly' },
 ]
 
 export function Sidebar() {

@@ -2,14 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, BookOpen, Calendar, Users, FileText } from 'lucide-react'
+import { LayoutDashboard, BookOpen, Calendar, FileText, MessageCircle } from 'lucide-react'
 
 const navItems = [
   { icon: LayoutDashboard, label: '仪表', href: '/' },
   { icon: BookOpen, label: '知识', href: '/knowledge' },
   { icon: Calendar, label: '日程', href: '/tasks' },
-  { icon: Users, label: '委托', href: '/delegation' },
   { icon: FileText, label: '日报', href: '/reports' },
+  { icon: MessageCircle, label: 'AI', href: '/chat' },
 ]
 
 export function BottomNav() {

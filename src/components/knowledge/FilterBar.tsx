@@ -1,6 +1,6 @@
 'use client'
 
-import { Input } from '@/components/ui/Input'
+import { useState, useEffect, useRef } from 'react'
 import { Tab } from '@/components/ui/Tab'
 
 const cardTypes = [
@@ -13,9 +13,9 @@ const cardTypes = [
 ]
 
 const statuses = [
-  { value: '', label: '全部' },
-  { value: 'UNKNOWN', label: '待了解' },
-  { value: 'KNOWN', label: '已了解' },
+  { value: '', label: '全部状态' },
+  { value: 'UNKNOWN', label: '🔴 待了解' },
+  { value: 'KNOWN', label: '🟢 已了解' },
 ]
 
 interface FilterBarProps {
@@ -35,13 +35,30 @@ export function FilterBar({
   onStatusChange,
   onSearchChange,
 }: FilterBarProps) {
+  const [localSearch, setLocalSearch] = useState(searchQuery)
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Sync external search changes
+  useEffect(() => {
+    setLocalSearch(searchQuery)
+  }, [searchQuery])
+
+  const handleSearchChange = (value: string) => {
+    setLocalSearch(value)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      onSearchChange(value)
+    }, 300)
+  }
+
   return (
     <div className="space-y-3 mb-4">
       {/* Search */}
-      <Input
-        placeholder="🔍 搜索..."
-        value={searchQuery}
-        onChange={(e) => onSearchChange(e.target.value)}
+      <input
+        placeholder="🔍 搜索卡片..."
+        value={localSearch}
+        onChange={(e) => handleSearchChange(e.target.value)}
+        className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
       />
 
       {/* Type filter */}
@@ -57,20 +74,18 @@ export function FilterBar({
         ))}
       </div>
 
-      {/* Status filter (only relevant for TERM) */}
-      {typeFilter === 'TERM' && (
-        <div className="flex gap-1">
-          {statuses.map((s) => (
-            <Tab
-              key={s.value}
-              active={statusFilter === s.value}
-              onClick={() => onStatusChange(s.value)}
-            >
-              {s.label}
-            </Tab>
-          ))}
-        </div>
-      )}
+      {/* Status filter — always visible */}
+      <div className="flex gap-1">
+        {statuses.map((s) => (
+          <Tab
+            key={s.value}
+            active={statusFilter === s.value}
+            onClick={() => onStatusChange(s.value)}
+          >
+            {s.label}
+          </Tab>
+        ))}
+      </div>
     </div>
   )
 }

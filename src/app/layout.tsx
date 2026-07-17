@@ -1,7 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { AIPanel } from "@/components/layout/AIPanel";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 import "./globals.css";
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: "AI 工作台",
@@ -34,7 +38,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-bg antialiased">
         <div className="flex h-screen">
-          {/* PC Sidebar */}
+          {/* PC Sidebar — hidden on mobile, visible from md */}
           <div className="hidden md:flex">
             <Sidebar />
           </div>
@@ -45,10 +49,16 @@ export default function RootLayout({
               {children}
             </div>
           </main>
+
+          {/* AI Panel — hidden on mobile, visible from md (sticky 320px/380px) */}
+          <AIPanel />
         </div>
 
-        {/* Mobile Bottom Navigation */}
+        {/* Mobile Bottom Navigation — visible on mobile, hidden from md */}
         <BottomNav />
+
+        {/* Toast notifications */}
+        <ToastProvider />
       </body>
     </html>
   );

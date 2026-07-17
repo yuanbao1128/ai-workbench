@@ -6,7 +6,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type')
     const status = searchParams.get('status')
-    const search = searchParams.get('search')
+    const search = searchParams.get('q') || searchParams.get('search')
+    const page = parseInt(searchParams.get('page') || '1')
+    const pageSize = parseInt(searchParams.get('pageSize') || '9')
 
     const where: Record<string, unknown> = {}
     if (type) where.type = type
@@ -18,12 +20,26 @@ export async function GET(request: NextRequest) {
       ]
     }
 
-    const cards = await prisma.card.findMany({
-      where,
-      orderBy: { updatedAt: 'desc' },
-    })
+    const skip = (page - 1) * pageSize
+    const [cards, total] = await Promise.all([
+      prisma.card.findMany({
+        where,
+        orderBy: { updatedAt: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      prisma.card.count({ where }),
+    ])
 
-    const response = NextResponse.json(cards)
+    const response = NextResponse.json({
+      cards,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    })
     response.headers.set('Cache-Control', 'public, max-age=5, stale-while-revalidate=30')
     return response
   } catch (error) {

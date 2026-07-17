@@ -1,0 +1,183 @@
+- generic [ref=f3e1]:
+  - generic [ref=f3e2]:
+    - generic [ref=f3e3]: 📋 v2 原型：
+    - button "仪表盘" [ref=f3e4] [cursor=pointer]
+    - button "知识库" [ref=f3e5] [cursor=pointer]
+    - button "日程表" [ref=f3e6] [cursor=pointer]
+    - button "日报" [ref=f3e7] [cursor=pointer]
+    - button "周报" [ref=f3e8] [cursor=pointer]
+    - generic [ref=f3e9]: "|"
+    - generic [ref=f3e10]: AI 聊天模式：
+    - button "📌 固定面板" [ref=f3e11] [cursor=pointer]
+    - button "💬 浮动按钮" [ref=f3e12] [cursor=pointer]
+    - generic [ref=f3e13]: "|"
+    - generic [ref=f3e14]: 视图：
+    - button "PC" [ref=f3e15] [cursor=pointer]
+    - button "📱 手机" [ref=f3e16] [cursor=pointer]
+  - generic [ref=f3e19]:
+    - generic [ref=f3e20]:
+      - generic [ref=f3e21]:
+        - generic [ref=f3e22]: 🤖 AI 工作台
+        - generic [ref=f3e23]: 郭红军 · 产品经理
+      - navigation [ref=f3e24]:
+        - generic [ref=f3e25] [cursor=pointer]:
+          - generic [ref=f3e26]: 📊
+          - text: 仪表盘
+        - generic [ref=f3e27] [cursor=pointer]:
+          - generic [ref=f3e28]: 📝
+          - text: 知识库
+          - generic [ref=f3e29]: "5"
+        - generic [ref=f3e30] [cursor=pointer]:
+          - generic [ref=f3e31]: 📅
+          - text: 日程表
+        - generic [ref=f3e32] [cursor=pointer]:
+          - generic [ref=f3e33]: 📋
+          - text: 日报
+        - generic [ref=f3e34] [cursor=pointer]:
+          - generic [ref=f3e35]: 📊
+          - text: 周报
+      - generic [ref=f3e37]:
+        - generic [ref=f3e38]: 郭
+        - text: 郭红军
+    - generic [ref=f3e39]:
+      - generic [ref=f3e40]:
+        - generic [ref=f3e41]:
+          - heading "今日概览" [level=1] [ref=f3e42]
+          - paragraph [ref=f3e43]: 2026年7月17日 · 周五
+        - generic [ref=f3e44]:
+          - button "⚙️" [ref=f3e45] [cursor=pointer]
+          - button "🔔 3" [ref=f3e46] [cursor=pointer]:
+            - text: 🔔
+            - generic [ref=f3e47]: "3"
+      - generic [ref=f3e48]:
+        - generic [ref=f3e49]:
+          - generic [ref=f3e50]:
+            - generic [ref=f3e51]: 🔴
+            - heading "必须解决" [level=3] [ref=f3e52]
+            - generic [ref=f3e53]: 1项
+          - generic [ref=f3e55] [cursor=pointer]:
+            - generic [ref=f3e56]:
+              - generic [ref=f3e57]: 评审登录页方案
+              - generic [ref=f3e58]: ⏰ 15:00
+            - generic [ref=f3e59]:
+              - generic [ref=f3e60]: 关联方案
+              - checkbox [ref=f3e61]
+        - generic [ref=f3e62]:
+          - generic [ref=f3e63]:
+            - generic [ref=f3e64]: 🟡
+            - heading "重点关注" [level=3] [ref=f3e65]
+            - generic [ref=f3e66]: 3项
+          - generic [ref=f3e67]:
+            - generic [ref=f3e69] [cursor=pointer]:
+              - generic [ref=f3e70]:
+                - generic [ref=f3e71]: Q2数据报告
+                - generic [ref=f3e72]: 📅 截止 7/10
+              - checkbox [ref=f3e73]
+            - generic [ref=f3e75] [cursor=pointer]:
+              - generic [ref=f3e76]: 需求文档 v2
+              - checkbox [ref=f3e77]
+            - generic [ref=f3e79] [cursor=pointer]:
+              - generic [ref=f3e80]: 数据复盘会议
+              - checkbox [ref=f3e81]
+      - generic [ref=f3e82]:
+        - generic [ref=f3e83]:
+          - generic [ref=f3e84]:
+            - generic [ref=f3e85]: 📌
+            - heading "待跟进" [level=3] [ref=f3e86]
+            - generic [ref=f3e87]: 4项
+            - generic [ref=f3e88] [cursor=pointer]: 展开 ↓
+          - generic [ref=f3e89]:
+            - generic [ref=f3e91] [cursor=pointer]:
+              - generic [ref=f3e92]:
+                - generic [ref=f3e93]: 🔄
+                - generic [ref=f3e94]: 登录报错→王工排查
+              - generic [ref=f3e95]: 追问@17:00
+            - generic [ref=f3e97] [cursor=pointer]:
+              - generic [ref=f3e98]:
+                - generic [ref=f3e99]: 📌
+                - generic [ref=f3e100]: 完成安全帽操作手册终稿
+              - generic [ref=f3e101]: 📅 截止 7/8
+        - generic [ref=f3e102]:
+          - generic [ref=f3e103]:
+            - generic [ref=f3e104]: 📝
+            - heading "待了解名词" [level=3] [ref=f3e105]
+            - generic [ref=f3e106]: 5个
+            - generic [ref=f3e107] [cursor=pointer]: 查看全部 →
+          - generic [ref=f3e108]:
+            - generic [ref=f3e109] [cursor=pointer]: K8s
+            - generic [ref=f3e110] [cursor=pointer]: GraphQL
+            - generic [ref=f3e111] [cursor=pointer]: WebSocket
+            - generic [ref=f3e112] [cursor=pointer]: gRPC
+            - generic [ref=f3e113] [cursor=pointer]: 消息队列
+          - generic [ref=f3e114]:
+            - generic [ref=f3e115]: 💡
+            - text: 待了解名词已达5个，有空时集中查阅吧
+    - generic [ref=f3e116]:
+      - generic [ref=f3e117]:
+        - generic [ref=f3e118]: AI
+        - generic [ref=f3e119]: AI 助手
+        - generic [ref=f3e120]: ● 在线
+      - generic [ref=f3e121]:
+        - generic [ref=f3e122]:
+          - paragraph [ref=f3e123]: 👋 早上好！今天你有：
+          - generic [ref=f3e124]:
+            - generic [ref=f3e125]: 🔴 必须解决：评审登录页方案（15:00）
+            - generic [ref=f3e126]: 🟡 重点关注：Q2数据报告、需求文档v2、数据复盘
+            - generic [ref=f3e127]: 📌 待跟进：4项
+            - generic [ref=f3e128]: 📝 待了解名词：5个
+        - generic [ref=f3e129]: 记一下 K8s 不太懂
+        - generic [ref=f3e131]: ✅ 已添加 「K8s」到知识库，标记为待了解。
+        - generic [ref=f3e132]: 张三找我解决发电量报表问题，6.17前需要回复他
+        - generic [ref=f3e134]:
+          - paragraph [ref=f3e135]: ✅ 已记录待跟进事项：
+          - generic [ref=f3e136]:
+            - generic [ref=f3e137]: 📌 发电量报表问题 → 回复张三
+            - generic [ref=f3e138]: 📅 截止 6月17日
+            - generic [ref=f3e139]: 已同步到日程表
+        - generic [ref=f3e187]: 记一下 K8s 不太懂
+        - generic [ref=f3e189]: ● 思考中...
+      - generic [ref=f3e140]:
+        - generic [ref=f3e141]:
+          - generic [ref=f3e142] [cursor=pointer]: 记名词
+          - generic [ref=f3e143] [cursor=pointer]: 添加TODO
+          - generic [ref=f3e144] [cursor=pointer]: 转委托
+          - generic [ref=f3e145] [cursor=pointer]: 查日程
+          - generic [ref=f3e146] [cursor=pointer]: 生周报
+        - generic [ref=f3e147]:
+          - textbox "输入消息... 如：记一下K8s不懂" [ref=f3e148]
+          - generic "上传文件" [ref=f3e149] [cursor=pointer]: 📎
+          - button "🎤" [ref=f3e150] [cursor=pointer]
+          - button "发送" [active] [ref=f3e151] [cursor=pointer]
+  - generic [ref=f3e152]:
+    - generic [ref=f3e153]:
+      - generic [ref=f3e154]: AI
+      - generic [ref=f3e155]: AI 助手
+      - generic [ref=f3e156]: ● 在线
+      - button "✕" [ref=f3e157] [cursor=pointer]
+    - generic [ref=f3e158]:
+      - generic [ref=f3e159]:
+        - paragraph [ref=f3e160]: 👋 你好！有什么可以帮你？
+        - generic [ref=f3e161]:
+          - generic [ref=f3e162]: 🔴 必须解决：评审登录页方案（15:00）
+          - generic [ref=f3e163]: 🟡 重点关注：3项
+          - generic [ref=f3e164]: 📌 待跟进：4项
+      - generic [ref=f3e165]: 记一下 K8s 不太懂
+      - generic [ref=f3e167]: ✅ 已添加 「K8s」到知识库，标记为待了解。
+      - generic [ref=f3e168]: 张三找我解决发电量报表问题，6.17前需要回复
+      - generic [ref=f3e170]:
+        - paragraph [ref=f3e171]: ✅ 已记录待跟进事项：
+        - generic [ref=f3e172]:
+          - generic [ref=f3e173]: 📌 发电量报表问题 → 回复张三
+          - generic [ref=f3e174]: 📅 截止 6月17日 · 已同步到日程表
+    - generic [ref=f3e175]:
+      - generic [ref=f3e176]:
+        - generic [ref=f3e177] [cursor=pointer]: 记名词
+        - generic [ref=f3e178] [cursor=pointer]: 添加TODO
+        - generic [ref=f3e179] [cursor=pointer]: 转委托
+        - generic [ref=f3e180] [cursor=pointer]: 查日程
+        - generic [ref=f3e181] [cursor=pointer]: 生周报
+      - generic [ref=f3e182]:
+        - textbox "输入消息..." [ref=f3e183]
+        - generic "上传文件" [ref=f3e184] [cursor=pointer]: 📎
+        - button "🎤" [ref=f3e185] [cursor=pointer]
+        - button "发送" [ref=f3e186] [cursor=pointer]

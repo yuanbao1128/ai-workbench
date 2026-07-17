@@ -1,0 +1,178 @@
+- generic [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - generic [ref=f1e3]: 📋 v2 原型：
+    - button "仪表盘" [ref=f1e4] [cursor=pointer]
+    - button "知识库" [active] [ref=f1e5] [cursor=pointer]
+    - button "日程表" [ref=f1e6] [cursor=pointer]
+    - button "日报" [ref=f1e7] [cursor=pointer]
+    - button "周报" [ref=f1e8] [cursor=pointer]
+    - generic [ref=f1e9]: "|"
+    - generic [ref=f1e10]: AI 聊天模式：
+    - button "📌 固定面板" [ref=f1e11] [cursor=pointer]
+    - button "💬 浮动按钮" [ref=f1e12] [cursor=pointer]
+    - generic [ref=f1e13]: "|"
+    - generic [ref=f1e14]: 视图：
+    - button "PC" [ref=f1e15] [cursor=pointer]
+    - button "📱 手机" [ref=f1e16] [cursor=pointer]
+  - generic [ref=f1e520]:
+    - generic [ref=f1e521]:
+      - generic [ref=f1e522]:
+        - generic [ref=f1e523]: 🤖 AI 工作台
+        - generic [ref=f1e524]: 郭红军 · 产品经理
+      - navigation [ref=f1e525]:
+        - generic [ref=f1e526] [cursor=pointer]:
+          - generic [ref=f1e527]: 📊
+          - text: 仪表盘
+        - generic [ref=f1e528] [cursor=pointer]:
+          - generic [ref=f1e529]: 📝
+          - text: 知识库
+          - generic [ref=f1e530]: "5"
+        - generic [ref=f1e531] [cursor=pointer]:
+          - generic [ref=f1e532]: 📅
+          - text: 日程表
+        - generic [ref=f1e533] [cursor=pointer]:
+          - generic [ref=f1e534]: 📋
+          - text: 日报
+        - generic [ref=f1e535] [cursor=pointer]:
+          - generic [ref=f1e536]: 📊
+          - text: 周报
+    - generic [ref=f1e537]:
+      - generic [ref=f1e538]:
+        - heading "知识库" [level=1] [ref=f1e539]
+        - button "+ 新增卡片" [ref=f1e540] [cursor=pointer]
+      - generic [ref=f1e541]:
+        - textbox "🔍 搜索知识卡片..." [ref=f1e542]
+        - generic [ref=f1e543]:
+          - generic [ref=f1e544] [cursor=pointer]: 全部
+          - generic [ref=f1e545] [cursor=pointer]: 术语
+          - generic [ref=f1e546] [cursor=pointer]: 方案
+          - generic [ref=f1e547] [cursor=pointer]: 灵感
+          - generic [ref=f1e548] [cursor=pointer]: 纪要
+          - generic [ref=f1e549] [cursor=pointer]: 问题
+        - generic [ref=f1e550]:
+          - generic [ref=f1e551] [cursor=pointer]: 全部状态
+          - generic [ref=f1e552] [cursor=pointer]: 🔴 待了解
+          - generic [ref=f1e553] [cursor=pointer]: 🟢 已了解
+      - generic [ref=f1e554]:
+        - generic [ref=f1e555] [cursor=pointer]:
+          - generic [ref=f1e556]:
+            - generic [ref=f1e557]: 术语
+            - generic [ref=f1e558]: 待了解
+          - generic [ref=f1e560]:
+            - generic [ref=f1e561]: K8s
+            - generic [ref=f1e562]: Kubernetes
+          - generic [ref=f1e563]: 📅 2026-07-05
+        - generic [ref=f1e564] [cursor=pointer]:
+          - generic [ref=f1e565]:
+            - generic [ref=f1e566]: 术语
+            - generic [ref=f1e567]: 已了解
+          - generic [ref=f1e569]:
+            - generic [ref=f1e570]: 矢量数据库
+            - generic [ref=f1e571]: AI语义搜索核心技术
+          - generic [ref=f1e572]: 📅 6/10 记录 · 6/20 更新
+        - generic [ref=f1e573] [cursor=pointer]:
+          - generic [ref=f1e574]:
+            - generic [ref=f1e575]: 术语
+            - generic [ref=f1e576]: 待了解
+          - generic [ref=f1e578]:
+            - generic [ref=f1e579]: GraphQL
+            - generic [ref=f1e580]: API 查询语言
+          - generic [ref=f1e581]: 📅 2026-07-01
+        - generic [ref=f1e582] [cursor=pointer]:
+          - generic [ref=f1e583]: 方案
+          - generic [ref=f1e585]:
+            - generic [ref=f1e586]: 登录页重构方案
+            - generic [ref=f1e587]: 手机号+验证码+微信OAuth
+          - generic [ref=f1e588]: 📅 7/3 记录 · 7/5 更新
+        - generic [ref=f1e589] [cursor=pointer]:
+          - generic [ref=f1e590]: 问题
+          - generic [ref=f1e592]:
+            - generic [ref=f1e593]: 订单超时取消为什么是30分钟？
+            - generic [ref=f1e594]: 需要搞清楚业务逻辑
+          - generic [ref=f1e595]: 📅 2026-07-04
+        - generic [ref=f1e596] [cursor=pointer]:
+          - generic [ref=f1e597]: 灵感
+          - generic [ref=f1e599]:
+            - generic [ref=f1e600]: 数据看板加个预警功能
+            - generic [ref=f1e601]: 指标超阈值自动变色
+          - generic [ref=f1e602]: 📅 2026-07-02
+        - generic [ref=f1e603] [cursor=pointer]:
+          - generic [ref=f1e604]:
+            - generic [ref=f1e605]: 术语
+            - generic [ref=f1e606]: 待了解
+          - generic [ref=f1e608]:
+            - generic [ref=f1e609]: WebSocket
+            - generic [ref=f1e610]: 全双工通信协议
+          - generic [ref=f1e611]: 📅 2026-07-05
+        - generic [ref=f1e612] [cursor=pointer]:
+          - generic [ref=f1e613]: 纪要
+          - generic [ref=f1e615]:
+            - generic [ref=f1e616]: 7/6 设计评审会纪要
+            - generic [ref=f1e617]: 确认登录页改版方向
+          - generic [ref=f1e618]: 📅 2026-07-06
+        - generic [ref=f1e619] [cursor=pointer]:
+          - generic [ref=f1e620]:
+            - generic [ref=f1e621]: 术语
+            - generic [ref=f1e622]: 待了解
+          - generic [ref=f1e624]:
+            - generic [ref=f1e625]: gRPC
+            - generic [ref=f1e626]: 高性能RPC框架
+          - generic [ref=f1e627]: 📅 2026-07-02
+      - generic [ref=f1e628]:
+        - button "◀" [disabled] [ref=f1e629]
+        - button "1" [ref=f1e630] [cursor=pointer]
+        - button "2" [ref=f1e631] [cursor=pointer]
+        - button "3" [ref=f1e632] [cursor=pointer]
+        - button "▶" [ref=f1e633] [cursor=pointer]
+        - generic [ref=f1e634]: 共 25 张卡片
+    - generic [ref=f1e635]:
+      - generic [ref=f1e636]:
+        - generic [ref=f1e637]: AI
+        - generic [ref=f1e638]: AI 助手
+        - generic [ref=f1e639]: ● 在线
+      - generic [ref=f1e641]:
+        - paragraph [ref=f1e642]: 💡 在知识库页面，你可以让我帮你：
+        - generic [ref=f1e643]:
+          - generic [ref=f1e644]: · "记一下 K8s 不太懂"
+          - generic [ref=f1e645]: · "矢量数据库什么意思？"
+          - generic [ref=f1e646]: · "把 K8s 标记为已了解"
+      - generic [ref=f1e647]:
+        - generic [ref=f1e648]:
+          - generic [ref=f1e649] [cursor=pointer]: 记名词
+          - generic [ref=f1e650] [cursor=pointer]: 添加TODO
+          - generic [ref=f1e651] [cursor=pointer]: 查日程
+        - generic [ref=f1e652]:
+          - textbox "输入消息..." [ref=f1e653]
+          - button "发送" [ref=f1e654] [cursor=pointer]
+  - generic [ref=f1e151]:
+    - generic [ref=f1e152]:
+      - generic [ref=f1e153]: AI
+      - generic [ref=f1e154]: AI 助手
+      - generic [ref=f1e155]: ● 在线
+      - button "✕" [ref=f1e156] [cursor=pointer]
+    - generic [ref=f1e157]:
+      - generic [ref=f1e158]:
+        - paragraph [ref=f1e159]: 👋 你好！有什么可以帮你？
+        - generic [ref=f1e160]:
+          - generic [ref=f1e161]: 🔴 必须解决：评审登录页方案（15:00）
+          - generic [ref=f1e162]: 🟡 重点关注：3项
+          - generic [ref=f1e163]: 📌 待跟进：4项
+      - generic [ref=f1e164]: 记一下 K8s 不太懂
+      - generic [ref=f1e166]: ✅ 已添加 「K8s」到知识库，标记为待了解。
+      - generic [ref=f1e167]: 张三找我解决发电量报表问题，6.17前需要回复
+      - generic [ref=f1e169]:
+        - paragraph [ref=f1e170]: ✅ 已记录待跟进事项：
+        - generic [ref=f1e171]:
+          - generic [ref=f1e172]: 📌 发电量报表问题 → 回复张三
+          - generic [ref=f1e173]: 📅 截止 6月17日 · 已同步到日程表
+    - generic [ref=f1e174]:
+      - generic [ref=f1e175]:
+        - generic [ref=f1e176] [cursor=pointer]: 记名词
+        - generic [ref=f1e177] [cursor=pointer]: 添加TODO
+        - generic [ref=f1e178] [cursor=pointer]: 转委托
+        - generic [ref=f1e179] [cursor=pointer]: 查日程
+        - generic [ref=f1e180] [cursor=pointer]: 生周报
+      - generic [ref=f1e181]:
+        - textbox "输入消息..." [ref=f1e182]
+        - button "🎤" [ref=f1e183] [cursor=pointer]
+        - button "发送" [ref=f1e184] [cursor=pointer]

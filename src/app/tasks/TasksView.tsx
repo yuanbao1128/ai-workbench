@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { WeekCalendar } from '@/components/tasks/WeekCalendar'
 import { DayDetail } from '@/components/tasks/DayDetail'
@@ -19,6 +19,36 @@ export function TasksView({ tasks, issues }: { tasks: TaskItem[]; issues: IssueI
   const [activeTab, setActiveTab] = useState<'schedule' | 'legacy'>('schedule')
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+
+  // 5.2: Keyboard shortcuts for week navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only when on schedule tab
+      if (activeTab !== 'schedule') return
+      // Don't fire when focusing input/textarea
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        setCurrentWeek((prev) => {
+          const d = new Date(prev)
+          d.setDate(d.getDate() - 7)
+          return d
+        })
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        setCurrentWeek((prev) => {
+          const d = new Date(prev)
+          d.setDate(d.getDate() + 7)
+          return d
+        })
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [activeTab])
 
   const handleToggleTask = async (id: string, status: string) => {
     const newStatus = status === 'DONE' ? 'TODO' : 'DONE'
@@ -73,6 +103,7 @@ export function TasksView({ tasks, issues }: { tasks: TaskItem[]; issues: IssueI
             currentWeek={currentWeek}
             selectedDate={selectedDate}
             taskCounts={taskCounts}
+            followUpCounts={{}}
             onDateSelect={setSelectedDate}
             onPrevWeek={() => {
               const d = new Date(currentWeek)

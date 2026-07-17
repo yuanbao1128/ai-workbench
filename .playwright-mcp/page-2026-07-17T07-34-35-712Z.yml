@@ -1,0 +1,54 @@
+- generic [ref=f2e2]:
+  - complementary [ref=f2e4]:
+    - generic [ref=f2e5]:
+      - generic [ref=f2e6]: 🤖 AI 工作台
+      - generic [ref=f2e7]: 产品经理
+    - navigation [ref=f2e8]:
+      - link "📊 仪表盘" [ref=f2e9] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f2e10]: 📊
+        - text: 仪表盘
+      - link "📝 知识库" [ref=f2e11] [cursor=pointer]:
+        - /url: /knowledge
+        - generic [ref=f2e12]: 📝
+        - text: 知识库
+      - link "📅 日程表" [ref=f2e13] [cursor=pointer]:
+        - /url: /tasks
+        - generic [ref=f2e14]: 📅
+        - text: 日程表
+      - link "📋 日报" [ref=f2e15] [cursor=pointer]:
+        - /url: /reports
+        - generic [ref=f2e16]: 📋
+        - text: 日报
+      - link "📊 周报" [ref=f2e17] [cursor=pointer]:
+        - /url: /weekly
+        - generic [ref=f2e18]: 📊
+        - text: 周报
+    - generic [ref=f2e20]:
+      - generic [ref=f2e21]: 郭
+      - text: 郭红军
+  - main [ref=f2e22]:
+    - generic [ref=f2e24]:
+      - heading "日程表" [level=1] [ref=f2e25]
+      - generic [ref=f2e26]:
+        - button "日程表" [ref=f2e27]
+        - button "遗留问题" [ref=f2e28]
+  - complementary [ref=f2e35]:
+    - generic [ref=f2e36]:
+      - generic [ref=f2e37]: 🤖
+      - generic [ref=f2e38]: AI 助手
+      - generic [ref=f2e39]: 在线
+    - generic [ref=f2e43]:
+      - generic [ref=f2e45]:
+        - paragraph [ref=f2e46]: 👋 你好！我是你的 AI 助手
+        - paragraph [ref=f2e47]: 可以帮你记名词、添加任务、转委托、查日程、生成周报
+      - generic [ref=f2e48]:
+        - button "记名词" [ref=f2e49]
+        - button "添加TODO" [ref=f2e50]
+        - button "转委托" [ref=f2e51]
+        - button "查日程" [ref=f2e52]
+        - button "生周报" [ref=f2e53]
+      - generic [ref=f2e55]:
+        - button "🎤" [ref=f2e56]
+        - textbox "输入消息...（支持语音输入）" [ref=f2e57]
+        - button "发送" [disabled] [ref=f2e58]

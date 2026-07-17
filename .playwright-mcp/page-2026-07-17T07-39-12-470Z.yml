@@ -1,0 +1,19 @@
+- generic [active] [ref=f10e1]:
+  - main [ref=f10e3]:
+    - generic [ref=f10e5]:
+      - heading "日程表" [level=1] [ref=f10e6]
+      - generic [ref=f10e7]:
+        - button "日程表" [ref=f10e8]
+        - button "遗留问题" [ref=f10e9]
+  - navigation [ref=f10e16]:
+    - link "仪表" [ref=f10e17] [cursor=pointer]:
+      - /url: /
+    - link "知识" [ref=f10e23] [cursor=pointer]:
+      - /url: /knowledge
+    - link "日程" [ref=f10e26] [cursor=pointer]:
+      - /url: /tasks
+    - link "日报" [ref=f10e29] [cursor=pointer]:
+      - /url: /reports
+    - link "AI" [ref=f10e33] [cursor=pointer]:
+      - /url: /chat
+  - alert [ref=f10e36]

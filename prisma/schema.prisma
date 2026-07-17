@@ -33,8 +33,9 @@ model Card {
 model Task {
   id           String   @id @default(cuid())
   title        String
+  type         String   @default("SCHEDULE")
   priority     String   @default("NORMAL")
-  status       String   @default("TODO")
+  status       String   @default("PENDING")
   dueDate      DateTime?
   relatedCards String   @default("[]")
   createdAt    DateTime @default(now())
@@ -76,11 +77,12 @@ model Activity {
 }
 
 model Report {
-  id        String   @id @default(cuid())
-  type      String
-  dateRange String
-  content   String
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  type       String
+  dateRange  String
+  content    String
+  weekNumber Int?
+  createdAt  DateTime @default(now())
 }
 
 model Setting {

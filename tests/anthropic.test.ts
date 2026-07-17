@@ -6,14 +6,9 @@ describe('Anthropic SDK Configuration', () => {
     expect(pkg.dependencies).toHaveProperty('@anthropic-ai/sdk')
   })
 
-  it('should export getAnthropicClient function', async () => {
+  it('should export getAIClient function', async () => {
     const mod = await import('../src/lib/ai/client')
-    expect(typeof mod.getAnthropicClient).toBe('function')
-  })
-
-  it('should export streamChat function', async () => {
-    const mod = await import('../src/lib/ai/client')
-    expect(typeof mod.streamChat).toBe('function')
+    expect(typeof mod.getAIClient).toBe('function')
   })
 
   it('should export chat function', async () => {

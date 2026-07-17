@@ -1,0 +1,6 @@
+[     345ms] [WARNING] cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation @ https://cdn.tailwindcss.com/:63
+[     467ms] [LOG] ✅ AI 工作台原型 v2 — 全部交互已就绪 @ http://localhost:3456/prototype-v2:2560
+[     468ms] [LOG]    PC 端：三栏布局 + AI 固定面板 @ http://localhost:3456/prototype-v2:2561
+[     468ms] [LOG]    手机端：全屏 + 底部导航 + 语音输入 @ http://localhost:3456/prototype-v2:2562
+[     468ms] [LOG]    功能：知识库筛选/分页/详情模态框 | 日历切换 | 待跟进展开/筛选 | AI对话模拟 | 设置 | Toast通知 @ http://localhost:3456/prototype-v2:2563
+[     470ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) @ http://localhost:3456/prototype-v2:0

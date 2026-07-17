@@ -1,14 +1,38 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 export function ThresholdReminder({ count = 0 }: { count?: number }) {
-  if (count < 5) return null
+  const today = new Date().toISOString().split('T')[0]
+  const [dismissed, setDismissed] = useState(false)
+
+  useEffect(() => {
+    const stored = localStorage.getItem(`threshold-dismissed-${today}`)
+    if (stored === 'true') setDismissed(true)
+  }, [today])
+
+  if (count < 5 || dismissed) return null
+
+  const handleDismiss = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    localStorage.setItem(`threshold-dismissed-${today}`, 'true')
+    setDismissed(true)
+  }
 
   return (
     <Link
       href="/knowledge?type=TERM&status=UNKNOWN"
-      className="block bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800 hover:bg-amber-100 transition-colors"
+      className="block bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700 hover:bg-red-100 transition-colors relative"
     >
-      📚 待了解名词已达 {count} 个，有空时集中查阅吧
+      <span>💡 待了解名词已达{count}个，有空时集中查阅吧</span>
+      <button
+        onClick={handleDismiss}
+        className="absolute right-3 top-3 text-red-400 hover:text-red-600 text-lg leading-none"
+      >
+        ×
+      </button>
     </Link>
   )
 }

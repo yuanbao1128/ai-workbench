@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { VoiceInput } from './VoiceInput'
+import { QuickSuggestions } from './QuickSuggestions'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -14,14 +15,6 @@ interface Message {
     card?: { type: string; title: string }
   }[]
 }
-
-const quickSuggestions = [
-  '记名词',
-  '添加TODO',
-  '转委托',
-  '查日程',
-  '生周报',
-]
 
 export function ChatPanel() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -72,17 +65,6 @@ export function ChatPanel() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleSuggestionClick = (suggestion: string) => {
-    const prompts: Record<string, string> = {
-      '记名词': 'K8s 不太懂，记一下',
-      '添加TODO': '今天要完成需求文档，记一下',
-      '转委托': '李老板反馈登录页报错了，转给王工排查',
-      '查日程': '今天有什么重点？',
-      '生周报': '帮我写周报',
-    }
-    handleSend(prompts[suggestion] || suggestion)
   }
 
   const handleVoiceResult = (text: string) => {
@@ -137,17 +119,7 @@ export function ChatPanel() {
       </div>
 
       {/* Quick suggestions */}
-      <div className="flex gap-1 px-4 pb-2 overflow-x-auto">
-        {quickSuggestions.map((s) => (
-          <button
-            key={s}
-            onClick={() => handleSuggestionClick(s)}
-            className="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
-          >
-            {s}
-          </button>
-        ))}
-      </div>
+      <QuickSuggestions onSuggestionClick={(prompt) => handleSend(prompt)} />
 
       {/* Input */}
       <div className="border-t border-gray-200 p-4">

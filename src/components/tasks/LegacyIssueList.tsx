@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { isOverdue } from '@/lib/date-utils'
 
 interface LegacyIssueData {
@@ -11,6 +12,14 @@ interface LegacyIssueData {
   createdAt: string
 }
 
+function getDaysOverdue(plannedDate: string): number {
+  const planned = new Date(plannedDate)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  planned.setHours(0, 0, 0, 0)
+  return Math.floor((today.getTime() - planned.getTime()) / (1000 * 60 * 60 * 24))
+}
+
 export function LegacyIssueList({
   issues,
   onToggle,
@@ -18,6 +27,8 @@ export function LegacyIssueList({
   issues: LegacyIssueData[]
   onToggle: (id: string, currentStatus: string) => void
 }) {
+  const [showResolved, setShowResolved] = useState(false)
+
   const active = issues.filter((i) => i.status === 'PENDING')
   const resolved = issues.filter((i) => i.status === 'RESOLVED')
 
@@ -30,6 +41,9 @@ export function LegacyIssueList({
       {/* Active issues */}
       {active.map((issue) => {
         const overdue = issue.plannedDate && isOverdue(new Date(issue.plannedDate))
+        const daysOverdue = issue.plannedDate && overdue
+          ? getDaysOverdue(issue.plannedDate)
+          : 0
         const tags = JSON.parse(issue.tags || '[]')
 
         return (
@@ -52,7 +66,7 @@ export function LegacyIssueList({
                 <span className="text-sm text-gray-800">{issue.title}</span>
                 {overdue && (
                   <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-600">
-                    已逾期
+                    已逾期 {daysOverdue} 天
                   </span>
                 )}
               </div>
@@ -75,23 +89,29 @@ export function LegacyIssueList({
         )
       })}
 
-      {/* Resolved issues */}
+      {/* 5.5: Resolved issues — collapsible */}
       {resolved.length > 0 && (
         <div>
-          <h3 className="text-xs font-semibold text-gray-400 mb-2">
-            已解决 ({resolved.length})
-          </h3>
-          <div className="space-y-1 opacity-50">
-            {resolved.map((issue) => (
-              <div
-                key={issue.id}
-                className="flex items-center gap-3 p-2.5 bg-white rounded-lg border border-gray-200"
-              >
-                <input type="checkbox" checked readOnly className="w-4 h-4" />
-                <span className="text-sm text-gray-400 line-through">{issue.title}</span>
-              </div>
-            ))}
-          </div>
+          <button
+            onClick={() => setShowResolved(!showResolved)}
+            className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-gray-600 mb-2 transition-colors cursor-pointer"
+          >
+            <span>{showResolved ? '▼' : '▶'}</span>
+            <span>已解决 ({resolved.length})</span>
+          </button>
+          {showResolved && (
+            <div className="space-y-1 opacity-55 animate-expand">
+              {resolved.map((issue) => (
+                <div
+                  key={issue.id}
+                  className="flex items-center gap-3 p-2.5 bg-white rounded-lg border border-gray-200"
+                >
+                  <input type="checkbox" checked readOnly className="w-4 h-4" />
+                  <span className="text-sm text-gray-400 line-through">{issue.title}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
