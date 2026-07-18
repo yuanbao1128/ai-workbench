@@ -154,24 +154,39 @@ export function VoiceInput({ onResult, prominent }: VoiceInputProps) {
     }
   }
 
-  // 8.1: Prominent mobile button (48x48 blue)
+  // 8.1: Prominent mobile button — full-width "按住 说话" style
+  // Distinct from text input to avoid iOS long-press triggering copy/select
   if (prominent) {
     return (
       <button
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onClick={handleClick}
-        className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+        onContextMenu={(e) => e.preventDefault()}
+        onTouchStart={(e) => e.preventDefault()}
+        onTouchMove={(e) => e.preventDefault()}
+        onTouchEnd={(e) => e.preventDefault()}
+        className={`w-full rounded-xl flex items-center justify-center gap-3 py-4 px-6 transition-all select-none touch-none ${
           listening
             ? cancelling
-              ? 'bg-gray-400 scale-90'
-              : 'bg-red-500 scale-110 animate-pulse'
-            : 'bg-blue-500 hover:bg-blue-600'
+              ? 'bg-gray-400 scale-95'
+              : 'bg-red-500 scale-[1.02] animate-pulse-recording'
+            : 'bg-gray-100 hover:bg-gray-200 active:bg-gray-200'
         }`}
-        title={listening ? '松开发送' : '按住说话'}
+        title={listening ? '松开发送，上滑取消' : '按住说话'}
       >
-        <span className="text-white text-xl">🎤</span>
+        <span className={`text-2xl ${listening && !cancelling ? 'text-white' : 'text-gray-500'}`}>
+          🎤
+        </span>
+        <span className={`text-base font-medium ${
+          listening
+            ? cancelling
+              ? 'text-white'
+              : 'text-white'
+            : 'text-gray-500'
+        }`}>
+          {listening ? (cancelling ? '松开取消' : '松开 发送') : '按住 说话'}
+        </span>
       </button>
     )
   }

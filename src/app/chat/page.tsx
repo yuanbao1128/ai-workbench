@@ -104,10 +104,10 @@ export default function MobileAIPage() {
       {/* Quick suggestions */}
       <QuickSuggestions onSuggestionClick={handleSend} />
 
-      {/* Input with prominent voice button */}
-      <div className="border-t border-gray-200 p-4 pb-6">
+      {/* Input area */}
+      <div className="border-t border-gray-200 px-4 py-3 pb-6 space-y-3">
+        {/* Text input row */}
         <div className="flex items-center gap-3">
-          <VoiceInput onResult={handleVoiceResult} prominent />
           <input
             className="flex-1 border border-gray-200 rounded-full px-5 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
             placeholder="输入消息..."
@@ -128,6 +128,9 @@ export default function MobileAIPage() {
             <span className="text-lg">↑</span>
           </button>
         </div>
+
+        {/* Voice input row — distinct from text input to avoid iOS long-press copy */}
+        <VoiceInput onResult={handleVoiceResult} prominent />
       </div>
     </div>
   )
