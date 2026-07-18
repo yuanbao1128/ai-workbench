@@ -1,31 +1,53 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { VoiceInput } from '@/components/chat/VoiceInput'
 import { QuickSuggestions } from '@/components/chat/QuickSuggestions'
-
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
-  results?: Array<{ type: string; success: boolean; message: string; card?: { type: string; title: string } }>
-}
+import {
+  loadMessages,
+  saveMessages,
+  clearMessages,
+  generateMessageId,
+  type PersistedMessage,
+} from '@/lib/chat/storage'
 
 export default function MobileAIPage() {
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<PersistedMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const hydratedRef = useRef(false)
 
+  // ── Hydrate from localStorage on mount ─────────────────
+  useEffect(() => {
+    const stored = loadMessages()
+    setMessages(stored)
+    hydratedRef.current = true
+  }, [])
+
+  // ── Persist on every change after first hydration ─────
+  useEffect(() => {
+    if (!hydratedRef.current) return
+    saveMessages(messages)
+  }, [messages])
+
+  // ── Auto-scroll ────────────────────────────────────────
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const handleSend = async (text?: string) => {
+  const handleSend = useCallback(async (text?: string) => {
     const msg = text || input.trim()
     if (!msg || loading) return
 
+    const userMsg: PersistedMessage = {
+      id: generateMessageId(),
+      role: 'user',
+      content: msg,
+      timestamp: Date.now(),
+    }
     setInput('')
-    setMessages((prev) => [...prev, { role: 'user', content: msg }])
+    setMessages((prev) => [...prev, userMsg])
     setLoading(true)
 
     try {
@@ -35,21 +57,41 @@ export default function MobileAIPage() {
         body: JSON.stringify({ message: msg }),
       })
       const data = await res.json()
-      setMessages((prev) => [...prev, {
+      const reply: PersistedMessage = {
+        id: generateMessageId(),
         role: 'assistant',
         content: data.message || '收到你的消息',
         results: data.results,
-      }])
+        timestamp: Date.now(),
+      }
+      setMessages((prev) => [...prev, reply])
     } catch {
-      setMessages((prev) => [...prev, { role: 'assistant', content: '抱歉，AI 服务暂时不可用' }])
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: '抱歉，AI 服务暂时不可用，请稍后重试',
+          timestamp: Date.now(),
+        },
+      ])
     } finally {
       setLoading(false)
     }
-  }
+  }, [input, loading])
 
-  const handleVoiceResult = (text: string) => {
-    setInput(text)
-    handleSend(text)
+  const handleVoiceResult = useCallback(
+    (text: string) => {
+      // 语音识别完成后直接发送，无需二次点击
+      handleSend(text)
+    },
+    [handleSend]
+  )
+
+  const handleClearHistory = () => {
+    if (!window.confirm('清空所有聊天记录？此操作不可撤销。')) return
+    clearMessages()
+    setMessages([])
   }
 
   return (
@@ -62,6 +104,15 @@ export default function MobileAIPage() {
           <span className="w-2 h-2 rounded-full bg-green-500" />
           <span className="text-xs text-gray-400">在线</span>
         </span>
+        {messages.length > 0 && (
+          <button
+            onClick={handleClearHistory}
+            className="ml-2 text-xs text-gray-400 hover:text-red-500"
+            title="清空聊天记录"
+          >
+            🗑
+          </button>
+        )}
       </div>
 
       {/* Messages */}
@@ -74,35 +125,51 @@ export default function MobileAIPage() {
         )}
 
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
-              msg.role === 'user' ? 'bg-blue-50 rounded-br-md' : 'bg-gray-50 rounded-bl-md'
-            }`}>
+          <div
+            key={msg.id || i}
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div
+              className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
+                msg.role === 'user'
+                  ? 'bg-blue-50 rounded-br-md'
+                  : 'bg-gray-50 rounded-bl-md'
+              }`}
+            >
               <p className="text-gray-800 whitespace-pre-wrap">{msg.content}</p>
-              {msg.results?.map((result, j) => (
-                result.card && (
-                  <div key={j} className="mt-2 p-2 bg-white rounded-lg border border-gray-200">
-                    <span className="text-xs font-medium text-gray-500">
-                      {result.card.type === 'TERM' ? '📝 术语' : '📋 卡片'}
-                    </span>
-                    <p className="text-sm font-medium text-gray-900">{result.card.title}</p>
-                  </div>
-                )
-              ))}
+              {Array.isArray(msg.results) &&
+                msg.results.map(
+                  (result, j) =>
+                    result.card && (
+                      <div
+                        key={j}
+                        className="mt-2 p-2 bg-white rounded-lg border border-gray-200"
+                      >
+                        <span className="text-xs font-medium text-gray-500">
+                          {result.card.type === 'TERM' ? '📝 术语' : '📋 卡片'}
+                        </span>
+                        <p className="text-sm font-medium text-gray-900">
+                          {result.card.title}
+                        </p>
+                      </div>
+                    )
+                )}
             </div>
           </div>
         ))}
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-50 rounded-2xl rounded-bl-md px-4 py-3 text-sm text-gray-400">思考中...</div>
+            <div className="bg-gray-50 rounded-2xl rounded-bl-md px-4 py-3 text-sm text-gray-400">
+              思考中...
+            </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick suggestions */}
-      <QuickSuggestions onSuggestionClick={handleSend} />
+      {/* Quick suggestions — hide when chat has messages (less needed) */}
+      {messages.length === 0 && <QuickSuggestions onSuggestionClick={handleSend} />}
 
       {/* Input area */}
       <div className="border-t border-gray-200 px-4 py-3 pb-6 space-y-3">

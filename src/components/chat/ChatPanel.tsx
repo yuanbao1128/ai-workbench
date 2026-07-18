@@ -1,41 +1,50 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/Button'
 import { VoiceInput } from './VoiceInput'
 import { QuickSuggestions } from './QuickSuggestions'
-
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
-  results?: {
-    type: string
-    success: boolean
-    message: string
-    card?: { type: string; title: string }
-  }[]
-}
+import {
+  loadMessages,
+  saveMessages,
+  clearMessages,
+  generateMessageId,
+  type PersistedMessage,
+} from '@/lib/chat/storage'
 
 export function ChatPanel() {
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<PersistedMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const hydratedRef = useRef(false)
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
-
+  // Hydrate from localStorage on mount
   useEffect(() => {
-    scrollToBottom()
+    setMessages(loadMessages())
+    hydratedRef.current = true
+  }, [])
+
+  // Persist on change
+  useEffect(() => {
+    if (!hydratedRef.current) return
+    saveMessages(messages)
   }, [messages])
 
-  const handleSend = async (text?: string) => {
+  // Auto-scroll
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const handleSend = useCallback(async (text?: string) => {
     const msg = text || input.trim()
     if (!msg || loading) return
 
     setInput('')
-    setMessages((prev) => [...prev, { role: 'user', content: msg }])
+    setMessages((prev) => [
+      ...prev,
+      { id: generateMessageId(), role: 'user', content: msg, timestamp: Date.now() },
+    ])
     setLoading(true)
 
     try {
@@ -45,35 +54,59 @@ export function ChatPanel() {
         body: JSON.stringify({ message: msg }),
       })
       const data = await res.json()
-
       setMessages((prev) => [
         ...prev,
         {
+          id: generateMessageId(),
           role: 'assistant',
           content: data.message || '收到你的消息',
           results: data.results,
+          timestamp: Date.now(),
         },
       ])
     } catch {
       setMessages((prev) => [
         ...prev,
         {
+          id: generateMessageId(),
           role: 'assistant',
-          content: '抱歉，AI 服务暂时不可用',
+          content: '抱歉，AI 服务暂时不可用，请稍后重试',
+          timestamp: Date.now(),
         },
       ])
     } finally {
       setLoading(false)
     }
-  }
+  }, [input, loading])
 
-  const handleVoiceResult = (text: string) => {
-    setInput(text)
-    handleSend(text)
+  const handleVoiceResult = useCallback(
+    (text: string) => {
+      // Voice input directly sends (no need to fill input box and click send again)
+      handleSend(text)
+    },
+    [handleSend]
+  )
+
+  const handleClearHistory = () => {
+    if (!window.confirm('清空所有聊天记录？')) return
+    clearMessages()
+    setMessages([])
   }
 
   return (
     <div className="flex flex-col h-full">
+      {/* Clear-history control — only visible when there are messages */}
+      {messages.length > 0 && (
+        <div className="flex justify-end px-4 py-1 border-b border-gray-50">
+          <button
+            onClick={handleClearHistory}
+            className="text-xs text-gray-400 hover:text-red-500"
+          >
+            🗑 清空历史
+          </button>
+        </div>
+      )}
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-4 p-4">
         {messages.length === 0 && (
@@ -84,25 +117,37 @@ export function ChatPanel() {
         )}
 
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
-              msg.role === 'user'
-                ? 'bg-blue-50 rounded-br-md'
-                : 'bg-gray-50 rounded-bl-md'
-            }`}>
+          <div
+            key={msg.id || i}
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div
+              className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
+                msg.role === 'user'
+                  ? 'bg-blue-50 rounded-br-md'
+                  : 'bg-gray-50 rounded-bl-md'
+              }`}
+            >
               <p className="text-gray-800 whitespace-pre-wrap">{msg.content}</p>
 
               {/* Result cards */}
-              {msg.results && msg.results.length > 0 && msg.results.map((result, j) => (
-                result.card && (
-                  <div key={j} className="mt-2 p-2 bg-white rounded-lg border border-gray-200">
-                    <span className="text-xs font-medium text-gray-500">
-                      {result.card.type === 'TERM' ? '📝 术语' : '📋 卡片'}
-                    </span>
-                    <p className="text-sm font-medium text-gray-900">{result.card.title}</p>
-                  </div>
-                )
-              ))}
+              {Array.isArray(msg.results) &&
+                msg.results.map(
+                  (result, j) =>
+                    result.card && (
+                      <div
+                        key={j}
+                        className="mt-2 p-2 bg-white rounded-lg border border-gray-200"
+                      >
+                        <span className="text-xs font-medium text-gray-500">
+                          {result.card.type === 'TERM' ? '📝 术语' : '📋 卡片'}
+                        </span>
+                        <p className="text-sm font-medium text-gray-900">
+                          {result.card.title}
+                        </p>
+                      </div>
+                    )
+                )}
             </div>
           </div>
         ))}
@@ -119,7 +164,9 @@ export function ChatPanel() {
       </div>
 
       {/* Quick suggestions */}
-      <QuickSuggestions onSuggestionClick={(prompt) => handleSend(prompt)} />
+      <QuickSuggestions
+        onSuggestionClick={(prompt) => handleSend(prompt)}
+      />
 
       {/* Input */}
       <div className="border-t border-gray-200 p-4">

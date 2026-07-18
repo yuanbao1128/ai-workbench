@@ -1,30 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { chat } from '@/lib/ai/client'
-import { parseIntentResponse, IntentType } from '@/lib/ai/intent'
+import { parseIntentResponse, IntentType, INTENT_SYSTEM_PROMPT, preprocessUserInput } from '@/lib/ai/intent'
 import { routeIntent } from '@/lib/ai/router'
 import { prisma } from '@/lib/db'
 import { AIProvider } from '@/lib/ai/client'
 
 export const dynamic = 'force-dynamic'
-
-const SYSTEM_PROMPT = `你是一个意图识别助手。分析用户的中文输入，返回 JSON 格式的意图识别结果。
-
-支持的意图类型：
-- ADD_TERM: 新增术语/名词
-- ADD_DESIGN: 新增方案
-- ADD_INSPIRATION: 新增灵感
-- ADD_MEETING: 新增会议纪要
-- ADD_QUESTION: 新增问题
-- ADD_TODO: 新增任务/待办
-- ADD_DELEGATION: 新增委托
-- QUERY: 查询知识库或今日概览
-- GENERATE_REPORT: 生成日报或周报
-- UNKNOWN: 无法识别意图
-
-提取实体字段：title, content, priority, dueDate, assignee, source, followUpTime, query, reportType
-
-返回格式（必须是纯 JSON）：
-{"intents":[{"type":"ADD_TERM","confidence":0.95,"entities":{"title":"K8s"}}]}`
 
 async function loadAISettings() {
   const settings = await prisma.setting.findUnique({
@@ -74,32 +55,45 @@ export async function POST(request: NextRequest) {
 
     let intents: { type: IntentType; confidence: number; entities: Record<string, string | null> }[]
 
+    // Pre-process: normalize English terms & extract relative dates
+    const preprocessed = preprocessUserInput(message)
+    const llmMessage = preprocessed.cleaned || message
+
     if (dbSettings || hasEnvKey) {
       try {
         const config = dbSettings || undefined
         const response = await chat(
-          [{ role: 'user', content: message }],
-          SYSTEM_PROMPT,
+          [{ role: 'user', content: llmMessage }],
+          INTENT_SYSTEM_PROMPT,
           config
         )
 
         const text = getFirstText(response.content)
         intents = parseIntentResponse(text)
       } catch {
-        // Fallback to keyword matching
-        const { parseIntentResponse: parse } = await import('@/lib/ai/intent')
-        intents = parse(message)
+        // Fallback to keyword matching (uses pre-cleaned text)
+        intents = parseIntentResponse(llmMessage)
       }
     } else {
-      // No API key: use keyword matching
-      const { parseIntentResponse } = await import('@/lib/ai/intent')
-      intents = parseIntentResponse(message)
+      // No API key: use keyword matching with pre-cleaned text
+      intents = parseIntentResponse(llmMessage)
     }
 
-    // Execute all intents
+    // Enrich intents with pre-extracted relative dates when LLM missed them
+    intents = intents.map((i) => {
+      if (preprocessed.relativeDueDate && !i.entities?.dueDate) {
+        return {
+          ...i,
+          entities: { ...(i.entities ?? {}), dueDate: preprocessed.relativeDueDate },
+        }
+      }
+      return i
+    })
+
+    // Execute all intents (in sequence, with idempotency protection)
     const results = []
     for (const intent of intents) {
-      const result = await routeIntent(intent.type, intent.entities)
+      const result = await routeIntent(intent.type, intent.entities, message)
       results.push({
         type: intent.type,
         confidence: intent.confidence,
@@ -111,6 +105,11 @@ export async function POST(request: NextRequest) {
       intents,
       results,
       message: results.map((r) => r.message).join('\n'),
+      normalized: {
+        cleaned: preprocessed.cleaned,
+        replacements: preprocessed.replacements,
+        detectedDueDate: preprocessed.relativeDueDate,
+      },
     })
   } catch (error) {
     console.error('AI Chat error:', error)
