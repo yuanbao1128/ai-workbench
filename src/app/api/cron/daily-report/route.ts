@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { generateDailyReport } from '@/lib/reports/daily'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   const today = new Date()
   const dateStr = today.toISOString().split('T')[0]

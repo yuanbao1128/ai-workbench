@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db'
 import { generateWeeklyReport } from '@/lib/reports/weekly'
 import { getWeekStart, getWeekEnd } from '@/lib/date-utils'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   const today = new Date()
   const weekStart = getWeekStart(today)

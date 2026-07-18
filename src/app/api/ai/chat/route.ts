@@ -5,6 +5,8 @@ import { routeIntent } from '@/lib/ai/router'
 import { prisma } from '@/lib/db'
 import { AIProvider } from '@/lib/ai/client'
 
+export const dynamic = 'force-dynamic'
+
 const SYSTEM_PROMPT = `你是一个意图识别助手。分析用户的中文输入，返回 JSON 格式的意图识别结果。
 
 支持的意图类型：
