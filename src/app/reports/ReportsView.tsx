@@ -44,7 +44,6 @@ export function ReportsView({ reports }: { reports: ReportData[] }) {
       </div>
 
       <div className="flex gap-1 mb-4">
-        <Tab active={!router} onClick={() => router.push('/reports')}>全部</Tab>
         <Tab active={false} onClick={() => router.push('/reports?type=DAILY')}>日报</Tab>
         <Tab active={false} onClick={() => router.push('/reports?type=WEEKLY')}>周报</Tab>
       </div>

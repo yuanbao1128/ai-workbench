@@ -1,0 +1,62 @@
+- generic [ref=f8e2]:
+  - complementary [ref=f8e4]:
+    - generic [ref=f8e5]:
+      - generic [ref=f8e6]: 🤖 AI 工作台
+      - generic [ref=f8e7]: 产品经理
+    - navigation [ref=f8e8]:
+      - link "📊 仪表盘" [ref=f8e9] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f8e10]: 📊
+        - text: 仪表盘
+      - link "📝 知识库" [ref=f8e11] [cursor=pointer]:
+        - /url: /knowledge
+        - generic [ref=f8e12]: 📝
+        - text: 知识库
+      - link "📅 日程表" [ref=f8e13] [cursor=pointer]:
+        - /url: /tasks
+        - generic [ref=f8e14]: 📅
+        - text: 日程表
+      - link "📋 日报" [ref=f8e15] [cursor=pointer]:
+        - /url: /reports
+        - generic [ref=f8e16]: 📋
+        - text: 日报
+    - generic [ref=f8e18]:
+      - generic [ref=f8e19]: 郭
+      - text: 郭红军
+  - main [ref=f8e20]:
+    - generic [ref=f8e22]:
+      - generic [ref=f8e23]:
+        - heading "知识库" [level=1] [ref=f8e24]
+        - button "+ 新建" [ref=f8e25]
+      - generic [ref=f8e26]:
+        - textbox "🔍 搜索卡片..." [ref=f8e27]
+        - generic [ref=f8e28]:
+          - button "全部" [ref=f8e29]
+          - button "术语" [ref=f8e30]
+          - button "方案" [ref=f8e31]
+          - button "灵感" [ref=f8e32]
+          - button "纪要" [ref=f8e33]
+          - button "问题" [ref=f8e34]
+        - generic [ref=f8e35]:
+          - button "全部状态" [ref=f8e36]
+          - button "🔴 待了解" [ref=f8e37]
+          - button "🟢 已了解" [ref=f8e38]
+  - complementary [ref=f8e49]:
+    - generic [ref=f8e50]:
+      - generic [ref=f8e51]: 🤖
+      - generic [ref=f8e52]: AI 助手
+      - generic [ref=f8e53]: 在线
+    - generic [ref=f8e57]:
+      - generic [ref=f8e59]:
+        - paragraph [ref=f8e60]: 👋 你好！我是你的 AI 助手
+        - paragraph [ref=f8e61]: 可以帮你记名词、添加任务、转委托、查日程、生成周报
+      - generic [ref=f8e62]:
+        - button "记名词" [ref=f8e63]
+        - button "添加TODO" [ref=f8e64]
+        - button "转委托" [ref=f8e65]
+        - button "查日程" [ref=f8e66]
+        - button "生周报" [ref=f8e67]
+      - generic [ref=f8e69]:
+        - button "🎤" [ref=f8e70]
+        - textbox "输入消息...（支持语音输入）" [ref=f8e71]
+        - button "发送" [disabled] [ref=f8e72]

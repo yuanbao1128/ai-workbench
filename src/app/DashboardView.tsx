@@ -5,7 +5,6 @@ import { ThresholdReminder } from '@/components/knowledge/ThresholdReminder'
 import { PriorityCard } from '@/components/dashboard/PriorityCard'
 import { FollowUpCard } from '@/components/dashboard/FollowUpCard'
 import { UnknownTermsCloud } from '@/components/dashboard/UnknownTermsCloud'
-import { DashboardChat } from '@/components/dashboard/DashboardChat'
 
 interface OverviewData {
   mustCount: number
@@ -112,26 +111,18 @@ export function DashboardView() {
         </div>
       </div>
 
-      {/* Two-column layout */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Left: Overview */}
-        <div className="lg:w-3/5 space-y-4">
-          <ThresholdReminder count={d.unknownCount} />
+      {/* Full-width layout */}
+      <div className="space-y-4">
+        <ThresholdReminder count={d.unknownCount} />
 
-          <div className="grid grid-cols-1 gap-3">
-            <PriorityCard title="必须解决" priority="MUST" tasks={d.mustTasks} />
-            <PriorityCard title="重点关注" priority="FOCUS" tasks={d.focusTasks} />
-          </div>
-
-          <FollowUpCard items={d.followUps} />
-
-          <UnknownTermsCloud terms={d.unknownTerms} />
+        <div className="grid grid-cols-1 gap-3">
+          <PriorityCard title="必须解决" priority="MUST" tasks={d.mustTasks} />
+          <PriorityCard title="重点关注" priority="FOCUS" tasks={d.focusTasks} />
         </div>
 
-        {/* Right: AI Chat */}
-        <div className="lg:w-2/5">
-          <DashboardChat />
-        </div>
+        <FollowUpCard items={d.followUps} />
+
+        <UnknownTermsCloud terms={d.unknownTerms} />
       </div>
     </div>
   )

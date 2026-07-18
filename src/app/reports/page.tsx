@@ -15,7 +15,7 @@ export default function ReportsPage() {
   const [reports, setReports] = useState<ReportData[]>([])
   const [pagination, setPagination] = useState<PaginationMeta>({ page: 1, pageSize: 9, total: 0, totalPages: 0 })
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'DAILY' | 'WEEKLY' | ''>('')
+  const [filter, setFilter] = useState<'DAILY' | 'WEEKLY' | ''>('DAILY')
   const [page, setPage] = useState(1)
   const [generating, setGenerating] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
@@ -83,7 +83,6 @@ export default function ReportsPage() {
 
       {/* Filter tabs */}
       <div className="flex gap-1 mb-4">
-        <Tab active={filter === ''} onClick={() => setFilter('')}>全部</Tab>
         <Tab active={filter === 'DAILY'} onClick={() => setFilter('DAILY')}>日报</Tab>
         <Tab active={filter === 'WEEKLY'} onClick={() => setFilter('WEEKLY')}>周报</Tab>
       </div>
