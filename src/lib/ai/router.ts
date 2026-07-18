@@ -25,7 +25,6 @@ const DUPLICATE_WINDOW_MS = 30_000 // 30 s: same user message within this window
 const recentMessages = new Map<string, { type: IntentType; data: unknown; ts: number }>()
 
 function hashMessage(message: string): string {
-  // crude normalization: lowercase + collapse whitespace
   return message.trim().toLowerCase().replace(/\s+/g, ' ')
 }
 
@@ -43,6 +42,30 @@ function isDuplicate(message: string, type: IntentType): boolean {
 function recordExec(message: string, type: IntentType, data: unknown) {
   const key = `${type}:${hashMessage(message)}`
   recentMessages.set(key, { type, data, ts: Date.now() })
+}
+
+/**
+ * Clean up overly verbose titles. The LLM sometimes passes through
+ * the full original user message. This strips common conversational
+ * wrappers and trims to a reasonable length.
+ */
+export function cleanTitle(raw: string | null | undefined, fallback: string, max = 30): string {
+  let t = (raw || fallback || '未命名').trim()
+  // Strip conversational prefixes/verbs common in Chinese
+  t = t.replace(/^(帮我|请|麻烦|记得|我想|我需要|需要|先|帮我把|接下来|然后|可以|能否|要不要|打算?要?请?你?帮?我?)\s*/i, '')
+  t = t.replace(/^(记一下|记个|加个|新建|创建?一个?|记录一下)\s*/i, '')
+  // Strip trailing conversational particles
+  t = t.replace(/\s*(一下哈|一下吧|哈|呢|啊|哦|呀)$/i, '')
+  // Trim "明天上午十点有个会，记到todo里" style chains to the meaningful part
+  // Match comma + suffix like "，记到todo里"
+  t = t.replace(/，\s*记到\s*(?:todo|待办|待跟进)里?.*$/i, '')
+  t = t.replace(/，\s*加到\s*(?:todo|待办|待跟进)里?.*$/i, '')
+  t = t.replace(/，\s*写在?\s*(?:todo|待办|待跟进)里?.*$/i, '')
+  // Also strip standalone suffix ".加到 todo"
+  t = t.replace(/[，。,.\s]+(?:加到|放入|写入|记到|写在)\s*(?:todo|待办|待跟进)里?\s*$/i, '')
+  // Cap length
+  if (t.length > max) t = t.slice(0, max)
+  return t || fallback
 }
 
 export async function routeIntent(
@@ -72,7 +95,7 @@ export async function routeIntent(
         | 'INSPIRATION'
         | 'MEETING'
         | 'QUESTION'
-      const title = (entities.title || '未命名').trim()
+      const title = cleanTitle(entities.title, '未命名卡片')
       if (!title) {
         return { success: false, message: '术语卡片标题为空，请补充后重试' }
       }
@@ -125,7 +148,7 @@ export async function routeIntent(
     }
 
     case 'ADD_TODO': {
-      const title = (entities.title || '未命名任务').trim()
+      const title = cleanTitle(entities.title, '新任务')
       const dueDate = entities.dueDate ? new Date(entities.dueDate) : null
 
       // If LLM didn't supply a due date and the user message contains no
@@ -150,7 +173,7 @@ export async function routeIntent(
     }
 
     case 'ADD_DELEGATION': {
-      const title = (entities.title || '未命名委托').trim()
+      const title = cleanTitle(entities.title, '新委托')
       const assignee = entities.assignee || '待指定'
       const followUpTimes: string[] = []
       if (entities.followUpTime) followUpTimes.push(entities.followUpTime)

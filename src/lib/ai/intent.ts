@@ -19,57 +19,102 @@ export interface IntentResult {
   originalMessage: string
 }
 
-export const INTENT_SYSTEM_PROMPT = `你是一个意图识别助手。分析用户的中文或中英混合输入，返回 JSON 格式的意图识别结果。
+export const INTENT_SYSTEM_PROMPT = `你是一个意图识别与任务拆解助手。分析用户的中文或中英混合输入，**主动拆解复合意图**，返回 JSON 格式的意图识别结果。
 
-支持的意图类型：
-- ADD_TERM: 新增术语/名词（如"记一下K8s不懂"、"log K8s"、"jot down Vector DB"）
-- ADD_DESIGN: 新增方案（如"登录页需要支持手机号验证码"）
-- ADD_INSPIRATION: 新增灵感（如"灵感：把设置页改成向导式"）
-- ADD_MEETING: 新增会议纪要（如"记会议"、"meeting note"、"standup 要点"）
-- ADD_QUESTION: 新增问题（如"为什么首页加载慢"、"待解决：接口超时"）
-- ADD_TODO: 新增任务/待办（如"今天要完成xxx"、"todo"、"add task"）
-- ADD_DELEGATION: 新增委托（如"转给王工排查"、"delegate to 张工"、"followup @王工"）
-- QUERY: 查询（如"矢量数据库什么意思？"、"今天有什么重点？"、"what is K8s"）
-- GENERATE_REPORT: 生成报告（如"帮我写周报"、"生成今天日报"、"weekly report"）
-- UNKNOWN: 无法识别意图，自由对话
+## 关键规则
 
-实体提取：
-- title: 标题（核心名词短语，不含引导语）
-- content: 详细内容或描述
-- priority: MUST / FOCUS / NORMAL。中文"紧急/重要"=MUST，"关注"=FOCUS
-- dueDate: ISO 8601 字符串，相对日期必须转换为绝对时间（"明天上午10点" → 计算成具体日期时间）
-- assignee: 被委托人姓名（如"转给王工" → "王工"）
-- source: 来源（链接、参考文档等）
-- followUpTime: 追问时间（ISO 8601）
-- recurrence: "每天"=daily, "每周"=weekly, "每月"=monthly, 默认 none
-- remindBefore: 提前提醒时间（ISO 8601，相对于 dueDate）
+### 1. 标题（title）必须简洁总结
+- title ≤ 15 个汉字（或等效 30 个英文字符）
+- 删除口语化引导："帮我记一下"、"待办里加一条"、"记到todo里"、"明天上午十点有个会" 这种是原始描述，不是标题
+- 标题应是**动作核心**：例如 "明天上午十点有个会，记到todo里" → title = "准备明天10点会议"（保留关键时间）
+- 中英文专有名词保留原样不翻译（K8s、Webhook 等）
+
+### 2. 复合消息必须拆成多个 intents
+遇到"+"、"、"或者语义上明显是多个动作，必须分别创建：
+- "明天上午十点有个会，记到todo里" →
+  [
+    { type: ADD_MEETING, title: "明天10点会议", dueDate: <明早10点 ISO> },
+    { type: ADD_TODO, title: "为明天10点会议做准备", dueDate: <明早10点 ISO> }
+  ]
+- "记一下 K8s 不要懂；明天下午3点王工汇报" →
+  [
+    { type: ADD_TERM, title: "K8s" },
+    { type: ADD_MEETING, title: "王工汇报", dueDate: <明下午3点 ISO> }
+  ]
+
+### 3. dueDate 必须精确实刻
+- "明天上午10点" → 明天 10:00:00
+- "今晚8点" → 今天 20:00:00
+- "明天" 无小时 → 09:00:00
+- 输出 ISO 8601 字符串（带时区）
+
+### 4. 优先级映射
+- "紧急"/"重要"/"高优" → MUST
+- "关注"/"留意" → FOCUS
+- 其他/无信号 → NORMAL
+
+## 支持的意图类型
+- ADD_TERM: 新增术语/名词（如"记一下K8s不懂"）
+- ADD_DESIGN: 新增方案（如"登录页要支持手机号验证"）
+- ADD_INSPIRATION: 新增灵感
+- ADD_MEETING: 新增会议纪要（如"记会议"、"meeting note"）
+- ADD_QUESTION: 新增问题（如"为什么首页加载慢"）
+- ADD_TODO: 新增任务/待办（如"今天完成xxx"）
+- ADD_DELEGATION: 新增委托（如"转给王工排查"）
+- QUERY: 查询
+- GENERATE_REPORT: 生成周报/日报
+- UNKNOWN: 无法识别
+
+## 实体字段
+- title: 标题（已按规则1总结）
+- content: 详细内容
+- priority: MUST/FOCUS/NORMAL
+- dueDate: ISO 8601（含时间）
+- assignee: 被委托人
+- source: 来源（URL等）
+- followUpTime: 追问时间 ISO
 - query: 查询内容
-- reportType: 日报/周报
+- reportType: "日报"/"周报"
 
-单条消息可能包含多个意图，必须全部返回：
-"记一下 K8s 不要懂；明天下午3点王工汇报"
-→ 返回 [
-  { type: ADD_TERM, entities: { title: "K8s 不要懂" } },
-  { type: ADD_MEETING, entities: { title: "王工汇报", dueDate: <明天下午3点的 ISO> } }
-]
+## 示例（必须按此风格输出）
 
-返回格式（必须是合法 JSON，不要用反引号包裹）：
+输入："明天上午十点有个会，记到todo里"
+输出：
 {
   "intents": [
-    { "type": "ADD_TERM", "confidence": 0.95, "entities": { "title": "K8s" } }
+    {"type": "ADD_MEETING", "confidence": 0.9, "entities": {"title": "明天10点会议", "dueDate": "<明天10:00 ISO>"}},
+    {"type": "ADD_TODO", "confidence": 0.85, "entities": {"title": "为明天10点会议做准备", "dueDate": "<明天10:00 ISO>"}}
   ]
 }
 
-置信度（confidence）指导：
-- 0.95+ : 明确无歧义
-- 0.7-0.9 : 大概率正确
-- 0.4-0.7 : 模糊，请用户确认
-- <0.4 : UNKNOWN，回到通用对话
+输入："log K8s 不太懂"
+输出：
+{
+  "intents": [
+    {"type": "ADD_TERM", "confidence": 0.95, "entities": {"title": "K8s", "content": "不太懂，待了解"}}
+  ]
+}
 
-注意：
-- 用户可能用口语、夹杂英文（已在前处理阶段归一化，但仍可能出现未覆盖的英文术语）
-- "记一下"、"提醒我"、"todo"、"task" 等同义表达都识别为 ADD_TODO 或 ADD_TERM
-- 中英保留原样，不要翻译 title 中是英文的专有名词`
+输入："明天 4 个 task: 修 bug、写文档、对需求、回复邮件"
+输出（拆 4 条）：
+{
+  "intents": [
+    {"type": "ADD_TODO", "entities": {"title": "修bug"}},
+    {"type": "ADD_TODO", "entities": {"title": "写文档"}},
+    {"type": "ADD_TODO", "entities": {"title": "对需求"}},
+    {"type": "ADD_TODO", "entities": {"title": "回复邮件"}}
+  ]
+}
+
+## 返回格式
+只返回合法 JSON（不要任何解释文本、不要用反引号包裹）：
+{
+  "intents": [
+    {"type": "<TYPE>", "confidence": <0-1>, "entities": { ... }}
+  ]
+}
+
+置信度：0.95+ 明确，0.7-0.9 大概率，0.4-0.7 模糊，<0.4 UNKNOWN。`
 
 export function parseIntentResponse(text: string): IntentResult['intents'] {
   try {
@@ -111,7 +156,25 @@ export function keywordIntentMatch(text: string): IntentResult['intents'] {
   // 否则"meeting note"会被"note"抢先匹配成 ADD_TERM
   const lowered = text.toLowerCase()
 
-  if (/(?:会议|meeting|standup|纪要|评审|对齐|汇报)/.test(text)) {
+  if (/(?:会议|meeting|standup|纪要|评审|对齐|汇报|开个?会|有个?会)/.test(text)) {
+    // 复合模式：会议 + 记到todo里 / 待办里 → 同时创建两条
+    const hasTodoSuffix = /(?:记到|加到|写在|放入|写入)\s*(?:todo|待办|待跟进)/i.test(text)
+    if (hasTodoSuffix) {
+      const due = extractDueDate(text)
+      const meetingTitle = text.replace(/[，。,.\s]+(?:记到|加到|写在|放入|写入)\s*(?:todo|待办|待跟进)里?.*$/i, '').trim()
+      return [
+        { type: 'ADD_MEETING', confidence: 0.75, entities: { title: meetingTitle, dueDate: due } },
+        {
+          type: 'ADD_TODO',
+          confidence: 0.7,
+          entities: {
+            // 总结todo标题：从原文提取核心
+            title: meetingTitle.replace(/(?:上午|下午|晚上|凌晨)?\s*\d{1,2}\s*[点时:：]?\s*\d{0,2}\s*分?/, '').slice(0, 30) || meetingTitle,
+            dueDate: due,
+          },
+        },
+      ]
+    }
     return [{ type: 'ADD_MEETING', confidence: 0.7, entities: { title: text } }]
   }
   if (/(?:转给|转委托|delegate|assign to|让.{0,3}处理|让.{0,3}排查|让.{0,3}看下)/.test(text)) {

@@ -23,6 +23,13 @@ export async function GET() {
     const mustTasks = tasks.filter(t => t.priority === 'MUST')
     const focusTasks = tasks.filter(t => t.priority === 'FOCUS')
 
+    // Also fetch TODO-type tasks (created via AI chat "记到todo里")
+    const todoTasks = await prisma.task.findMany({
+      where: { type: 'TODO', status: { not: 'DONE' } },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    })
+
     const followUps = [
       ...delegations.map(d => ({
         id: d.id,
@@ -36,6 +43,13 @@ export async function GET() {
             return times[0] || undefined
           } catch { return undefined }
         })(),
+      })),
+      ...todoTasks.map(t => ({
+        id: t.id,
+        type: 'todo' as const,
+        title: t.title,
+        status: t.status,
+        dueDate: t.dueDate?.toISOString() ?? undefined,
       })),
     ]
 

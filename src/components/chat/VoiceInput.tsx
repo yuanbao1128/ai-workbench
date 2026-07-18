@@ -17,9 +17,11 @@ interface SpeechRecognition extends EventTarget {
   continuous: boolean
   interimResults: boolean
   lang: string
+  maxAlternatives?: number
   onresult: ((event: SpeechRecognitionEvent) => void) | null
   onerror: ((event: SpeechRecognitionErrorEvent) => void) | null
   onend: (() => void) | null
+  onnomatch?: (() => void) | null
   start(): void
   stop(): void
   abort(): void
@@ -47,15 +49,18 @@ const ERROR_HINTS: Record<string, string> = {
   'audio-capture': '无法访问麦克风，请确认浏览器权限已开启',
   'not-allowed': '麦克风权限被拒绝，请在浏览器设置中开启',
   'not-allowed-error': '麦克风权限被拒绝',
-  network: '网络异常，语音识别失败，请稍后重试',
+  network: '网络异常，语音识别需要联网，请稍后重试',
   aborted: '已取消录音',
   'language-not-supported': '当前浏览器不支持中文语音识别',
+  service: '语音服务暂时不可用，请稍后重试',
 }
 
 export function VoiceInput({ onResult, prominent }: VoiceInputProps) {
   const [listening, setListening] = useState(false)
   const [supported, setSupported] = useState(true)
   const [cancelling, setCancelling] = useState(false)
+  // Track whether we received any result before onend fires
+  const resultReceivedRef = useRef(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const startYRef = useRef<number>(0)
@@ -71,9 +76,14 @@ export function VoiceInput({ onResult, prominent }: VoiceInputProps) {
     const ok = isSupported()
     setSupported(ok)
     if (!ok) {
-      toast('当前浏览器不支持语音输入，请使用 Chrome 桌面或 Android Chrome', 'warning')
+      // iOS in-app browser often lacks the API → fallback to text input
+      setTimeout(
+        () =>
+          toast('当前浏览器不支持语音输入，请直接打字', 'warning'),
+        800
+      )
     }
-  }, [isSupported])
+  }, [isSupported, toast])
 
   const clearRecognition = useCallback(() => {
     if (timeoutRef.current) {
@@ -91,6 +101,7 @@ export function VoiceInput({ onResult, prominent }: VoiceInputProps) {
   }, [])
 
   const startRecognition = useCallback(() => {
+    resultReceivedRef.current = false
     if (!isSupported()) {
       setSupported(false)
       return
@@ -100,19 +111,29 @@ export function VoiceInput({ onResult, prominent }: VoiceInputProps) {
       window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SpeechRecognitionClass) {
       setSupported(false)
+      toast('浏览器不支持语音识别，已自动切换到打字模式', 'warning')
       return
     }
-    const recognition = new SpeechRecognitionClass() as SpeechRecognition
+
+    let recognition: SpeechRecognition
+    try {
+      recognition = new SpeechRecognitionClass() as SpeechRecognition
+    } catch (e) {
+      toast('语音模块初始化失败', 'error')
+      return
+    }
+
     // 中文为主，浏览器会自动处理轻微英文
     recognition.lang = 'zh-CN'
     recognition.interimResults = false
     recognition.continuous = false
-
-    let gotResult = false
+    if ('maxAlternatives' in recognition) {
+      recognition.maxAlternatives = 1
+    }
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      gotResult = true
-      const text = event.results[0][0]?.transcript || ''
+      resultReceivedRef.current = true
+      const text = event.results[0]?.[0]?.transcript || ''
       if (text.trim()) {
         onResult(text)
         toast(
@@ -127,14 +148,22 @@ export function VoiceInput({ onResult, prominent }: VoiceInputProps) {
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       const hint = ERROR_HINTS[event.error] || `识别失败（${event.error}）`
       // 用户主动中止不报错
-      if (event.error === 'aborted' && !gotResult) return
+      if (event.error === 'aborted') return
       toast(hint, 'error')
       setListening(false)
       setCancelling(false)
       clearRecognition()
     }
 
+    recognition.onnomatch = () => {
+      toast('未匹配到内容，请再说一次', 'warning')
+    }
+
     recognition.onend = () => {
+      // If end fires without result and no error, surface a hint
+      if (!resultReceivedRef.current) {
+        toast('未听到声音，请检查麦克风权限或靠近一点', 'warning')
+      }
       setListening(false)
       setCancelling(false)
       if (timeoutRef.current) {
@@ -163,7 +192,7 @@ export function VoiceInput({ onResult, prominent }: VoiceInputProps) {
       }
       setListening(false)
     }, TIMEOUT_MS)
-  }, [isSupported, onResult, clearRecognition])
+  }, [isSupported, onResult, clearRecognition, toast])
 
   // Browser not supported — render nothing (don't break UI)
   if (!supported) return null

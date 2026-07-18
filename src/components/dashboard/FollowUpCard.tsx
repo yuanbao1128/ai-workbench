@@ -125,15 +125,23 @@ export function FollowUpCard({ items }: FollowUpCardProps) {
                   {item.type === 'todo' && (
                     <input type="checkbox" className="shrink-0 rounded border-gray-300" defaultChecked={item.status === 'DONE'} />
                   )}
-                  <span className="flex-1">{item.title}</span>
+                  {item.type === 'delegation' && (
+                    <span className="shrink-0 text-xs">📌</span>
+                  )}
+                  <span className="flex-1 truncate">{item.title}</span>
                   {item.type === 'delegation' && item.assignee && (
-                    <span className="text-xs text-gray-400">→{item.assignee}</span>
+                    <span className="text-xs text-gray-400 shrink-0">→{item.assignee}</span>
+                  )}
+                  {item.type === 'todo' && item.dueDate && (
+                    <span className="text-xs text-orange-500 shrink-0">
+                      📅 {new Date(item.dueDate).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })}
+                    </span>
                   )}
                   {item.followUpTime && (
-                    <span className="text-xs text-gray-400">{item.followUpTime}</span>
+                    <span className="text-xs text-gray-400 shrink-0">{item.followUpTime}</span>
                   )}
                   {item.type === 'delegation' && item.status === 'WAITING' && (
-                    <button className="text-xs text-primary px-2 py-0.5 rounded border border-primary/30 hover:bg-blue-50">
+                    <button className="text-xs text-primary px-2 py-0.5 rounded border border-primary/30 hover:bg-blue-50 shrink-0">
                       已追问
                     </button>
                   )}
